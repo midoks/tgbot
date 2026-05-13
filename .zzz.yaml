@@ -1,4 +1,4 @@
-dev: true
+dev: false
 title: zzz
 frequency: 3
 dirfilter:
@@ -8,11 +8,10 @@ dirfilter:
 - scripts
 - vendor
 - logs
-- templates
 ext:
 - go
 - tmpl
-lang: go
+lang: golang
 enablerun: true
 action:
   before:

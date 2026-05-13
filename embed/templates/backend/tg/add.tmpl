@@ -77,151 +77,48 @@
                     </td>
                 </tr>
 
-                <tr>
-                    <td>分组</td>
-                    <td>
-                        <div class="layui-input-inline">
-                            <select name="gid" id="gid" class="layui-input h30">
-                                <option value="0" {[if .Data]}{[if eq .Data.Gid 0 ]}selected{[end]}{[else]}selected{[end]}>未分组</option>
-                                {[range $g := .groups]}
-                                <option value="{[$g.ID]}" {[if $.Data]}{[if eq $.Data.Gid $g.ID ]}selected{[end]}{[end]}>{[$g.Name]}</option>
-                                {[end]}
-                            </select>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>类型</td>
-                    <td>
-                        <div class="layui-input-inline">
-                            <select name="type" lay-verify="required" lay-search lay-filter="type">
-                                <option value="">[选择类型]</option>
-                                <option value="http" {[if $.Data]}{[if eq $.Data.Type "http" ]}selected{[end]}{[end]}>HTTP(S)</option>
-                                <option value="tcp" {[if $.Data]}{[if eq $.Data.Type "tcp" ]}selected{[end]}{[end]}>TCP</option>
-                                <option value="udp" {[if $.Data]}{[if eq $.Data.Type "udp" ]}selected{[end]}{[end]}>UDP</option>
-                            </select>
-                        </div>
-                        <br/>
-                        <p class="layui-font-12">通过HTTP请求发送通知。</p>
-                    </td>
-                </tr>
-
-                <tr class="id_http bls" style="display:none;">
-                    <td>监控地址 *</td>
+                <tr class="bls">
+                    <td>机器人Token *</td>
                     <td>
                         <div class="layui-input-line">
-                            <input type="text" name="addr" autocomplete="off" class="layui-input" placeholder="请输入目标地址" value="{[if $.Data]}{[$.Data.GetHttpTypeParams.Addr]}{[end]}">
+                            <input type="text" name="token" autocomplete="off" class="layui-input" placeholder="请输入Token" value="{[if .Data]}{[.Data.Token]}{[end]}">
                         </div>
-                        <p class="layui-font-12">监控地址。</p>
+                        <p class="layui-font-12">创建机器人的时候可以获得，类似于 123456:AAAA-BBBB ，可以向 @BotFather 发送 /newbot 指令创建新的机器人。</p>
                     </td>
                 </tr>
 
-                <tr class="id_http bls" style="display:none;">
-                    <td>是否包含内容</td>
-                    <td>
-                        <div class="layui-input-line">
-                            <input type="text" name="check_content" autocomplete="off" class="layui-input" placeholder="检查内容" value="{[if $.Data]}{[$.Data.GetHttpTypeParams.CheckContent]}{[end]}">
-                        </div>
-                        <p class="layui-font-12">填写后会检查内容是否包含填写内容，影响状态。</p>
-                    </td>
-                </tr>
-
-                <tr class="id_http bls" style="display:none;">
-                    <td>UserAgent</td>
-                    <td>
-                        <div class="layui-input-line">
-                            <select lay-verify="required" lay-search lay-filter="select_useragent">
-                                <option value="Mozilla/5.0 (Linux; U; Android 12; zh-cn; PECM30 Build/SP1A.210812.016) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/115.0.5790.168 Mobile Safari/537.36 HeyTapBrowser/40.10.5.1">Android手机模拟</option>
-                                <option value="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1">iPhone (iOS 17)</option>
-                                <option value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36">Chrome (Windows)</option>
-                                <option value="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15">Safari (macOS)</option>
-                            </select>
-                            <br>
-                            <input type="text" name="user_agent" autocomplete="off" class="layui-input" placeholder="" value="{[if $.Data]}{[$.Data.GetHttpTypeParams.UserAgent]}{[end]}">
-                        </div>
-                        <p class="layui-font-12">用户代理</p>
-                    </td>
-                </tr>
-
-                <tr class="id_tcp bls" style="display:none;">
-                    <td>主机名</td>
-                    <td>
-                        <div class="layui-input-line">
-                            <input type="text" name="tcp_host" autocomplete="off" class="layui-input" value="{[if $.Data]}{[$.Data.GetTcpTypeParams.Host]}{[end]}">
-                        </div>
-                    </td>
-                </tr>
-
-                <tr class="id_tcp bls" style="display:none;">
-                    <td>端口</td>
-                    <td>
-                        <div class="layui-input-line">
-                            <input type="number" name="tcp_port" autocomplete="off" class="layui-input" value="{[if $.Data]}{[$.Data.GetTcpTypeParams.Port]}{[end]}">
-                        </div>
-                    </td>
-                </tr>
-
-                <tr class="id_udp bls" style="display:none;">
-                    <td>主机名</td>
-                    <td>
-                        <div class="layui-input-line">
-                            <input type="text" name="udp_host" autocomplete="off" class="layui-input" value="{[if $.Data]}{[$.Data.GetUdpTypeParams.Host]}{[end]}">
-                        </div>
-                    </td>
-                </tr>
-
-                <tr class="id_udp bls" style="display:none;">
-                    <td>端口</td>
-                    <td>
-                        <div class="layui-input-line">
-                            <input type="number" name="udp_port" autocomplete="off" class="layui-input" value="{[if $.Data]}{[$.Data.GetUdpTypeParams.Port]}{[end]}">
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>心跳间隔</td>
-                    <td>
-                        <div>
-                            <div class="layui-inline">
-                                <div class="layui-input-inline">
-                                    <input style="width: 60px;" type="number" name="interval" autocomplete="off" class="layui-input" value="{[if $.Data]}{[if $.Data.Interval]}{[$.Data.Interval]}{[else]}60{[end]}{[else]}60{[end]}">
-                                </div>
-                                <div class="layui-input-inline">
-                                    <select name="interval_type" lay-verify="required">
-                                        <option value="second" {[if $.Data]}{[if eq $.Data.IntervalType "second" ]}selected{[end]}{[end]}>秒</option>
-                                        <option value="minute" {[if $.Data]}{[if eq $.Data.IntervalType "minute" ]}selected{[end]}{[end]}>分钟</option>
-                                        <option value="hour" {[if $.Data]}{[if eq $.Data.IntervalType "hour" ]}selected{[end]}{[end]}>小时</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="layui-font-12">心跳间隔/检测频率</p>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>重试次数</td>
-                    <td>
-                        <div class="layui-input-inline">
-                            <input style="width: 60px;" type="number" name="max_retries" autocomplete="off" class="layui-input" value="{[if $.Data]}{[if $.Data.MaxRetries]}{[$.Data.MaxRetries]}{[else]}3{[end]}{[else]}3{[end]}">
-                        </div>
-                        <p class="layui-font-12">服务被标记为故障并发送通知之前的最大重试次数</p>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>请求超时</td>
+                <tr class="bls">
+                    <td>代理服务</td>
                     <td>
                         <div class="layui-inline">
-                            <div class="layui-input-inline">
-                                <input style="width: 60px;" type="number" name="timeout" autocomplete="off" class="layui-input" value="{[if $.Data]}{[if $.Data.Timeout]}{[$.Data.Timeout]}{[else]}5{[end]}{[else]}5{[end]}">
+                            <div class="layui-input-inline" style="float: left;">
+                                <select name="telegram_proxy_scheme" lay-verify="required" lay-search lay-filter="telegram_proxy_scheme">
+                                    <option value="socks5" {[if .Data]}{[if eq .Data.GetTelegramParams.TelegramProxyScheme "socks5" ]}selected{[end]}{[end]}>socks5://</option>
+                                    <option value="https" {[if .Data]}{[if eq .Data.GetTelegramParams.TelegramProxyScheme "https" ]}selected{[end]}{[end]}>https://</option>
+                                    <option value="http" {[if .Data]}{[if eq .Data.GetTelegramParams.TelegramProxyScheme "http" ]}selected{[end]}{[end]}>http://</option>
+                                </select>
                             </div>
-                            <label class="layui-form-label" style="width: 100px;float: right;">s(秒)</label>
+                            <div class="layui-input-inline" style="float: left;">
+                                <input type="text" name="telegram_proxy_value" autocomplete="off" class="layui-input" placeholder="" value="{[if .Data]}{[.Data.GetTelegramParams.TelegramProxyValue]}{[end]}">
+                            </div>
                         </div>
+                        <p class="layui-font-12">可选项，仅当API节点所在服务器无法直接连接Telegram API时填写；测试是否能够连接Telegram API的方法： 
+curl https://api.telegram.org 出现2XX、3XX、4XX之类提示时说明能够直接连接；如果你设置了代理，请使用 
+curl -x "你的代理服务地址" https://api.telegram.org 来测试你的代理是否可用。</p>
                     </td>
                 </tr>
+
+                <tr class="bls">
+                    <td>启用当前Telegram监听</td>
+                    <td>
+                        <input type="checkbox" name="telegram_listen_enable"
+                        {[if .Data]}{[if .Data.GetTelegramParams.TelegramListenEnable]}checked{[end]}
+                        {[else]}checked
+                        {[end]}>
+
+                        <p class="layui-font-12">开启后，可根据不同的策略，返回不同的响应</p>
+                    </td>
+                </tr/>
 
                 <tr>
                     <td colspan="2">
@@ -233,7 +130,7 @@
                 </tr>
 
                 <tr class="more_table hide">
-                    <td>启用当前检测</td>
+                    <td>启用当前机器人</td>
                     <td>
                         <input type="checkbox" name="status"
                         {[if $.Data]}{[if $.Data.Status]}checked{[end]}
@@ -253,7 +150,7 @@
 
         <div class="layui-form-item" style="text-align: center;">
             <input type="hidden" name="id" value="{[if $.Data]}{[$.Data.ID]}{[end]}">
-            <button class="layui-btn" lay-filter="submit_monitor" lay-submit>保存</button>
+            <button class="layui-btn" lay-filter="submit_tg" lay-submit>保存</button>
         </div>
     </form>
     </div>
@@ -270,45 +167,7 @@ var admin = layui.admin
 ,form = layui.form
 ,table = layui.table;
 
-function initType(data){
-    $('.id_http,.id_tcp,.id_udp').hide();
-    if (data === 'http') {
-        $('.id_http').show();
-    } else if (data === 'tcp') {
-        $('.id_tcp').show();
-    } else if (data === 'udp') {
-        $('.id_udp').show();
-    }
-}
-
-var data = $('select[name=type]').val();
-initType(data);
-
-form.on('select(type)', function(data){
-    initType(data.value);
-});
-
-form.on('select(select_useragent)', function(data){
-    $('input[name="user_agent"]').val(data.value);
-});
-
-// 处理更多选项的显示/隐藏
-$('.table_more').on('click', function(){
-    var targetClass = $(this).attr('target_class');
-    var $targets = $('.' + targetClass);
-    var $icon = $(this).find('.layui-icon');
-    
-    if ($targets.hasClass('hide')) {
-        $targets.removeClass('hide');
-        $icon.removeClass('layui-icon-down').addClass('layui-icon-up');
-    } else {
-        $targets.addClass('hide');
-        $icon.removeClass('layui-icon-up').addClass('layui-icon-down');
-    }
-});
-
-
-form.on("submit(submit_monitor)", function(data){
+form.on("submit(submit_tg)", function(data){
     var index = layer.load();
     var field = data.field;
 
@@ -318,7 +177,7 @@ form.on("submit(submit_monitor)", function(data){
         field['status'] = 0;
     }
 
-    $.post("/{[$.admin_path]}/monitor/add", field, function(res) {
+    $.post("/{[$.admin_path]}/tg/add", field, function(res) {
         showMsg(res.msg, function(){
             layer.close(index);
             if(res.code > -1){

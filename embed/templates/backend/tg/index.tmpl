@@ -34,31 +34,6 @@
 </div>
 
 <script type="text/javascript">
-//分组映射
-console.log('Groups data:', {[.groups | json]});
-var groupMapStr = {[.groups | json]};
-console.log('GroupMap string:', groupMapStr);
-var groupMap = [];
-try {
-    groupMap = JSON.parse(groupMapStr);
-    console.log('Parsed groupMap:', groupMap);
-} catch (e) {
-    console.error('Failed to parse groupMap:', e);
-    groupMap = [];
-}
-console.log('GroupMap type:', typeof groupMap);
-console.log('GroupMap is array:', Array.isArray(groupMap));
-var groupNameMap = {};
-if (Array.isArray(groupMap)) {
-    groupMap.forEach(function(group) {
-        groupNameMap[group.id] = group.name;
-        console.log('Added group:', group.id, group.name);
-    });
-} else {
-    console.error('groupMap is not an array:', groupMap);
-    groupMap = [];
-}
-console.log('GroupNameMap:', groupNameMap);
 
 layui.config({base: '/static/layuiadmin/'}).use(['table','jquery','layer'], function(){
 ///
@@ -80,9 +55,6 @@ function renderTable(){
         title: '数据表',
         cols: [[
             {field:'name', title:'名称'},
-            {field:'log_list', title:'检查状态', toolbar:"#runTpl"},
-            {field:'gid', title:'分组',width:100, toolbar:"#gidTpl"},
-            {field:'type', title:'类型',width:80},
             {field:'mark', title:'备注', toolbar:"#markTpl"},
             {field:'status', title:'状态', toolbar:"#statusTpl",width:80},
             {title:'操作', toolbar: '#cmdTpl', width:180, fixed: 'right'}

@@ -9,6 +9,7 @@ type Tgbot struct {
 	Mark       string `json:"mark"`                                  // mark
 	IsOn       string `json:"is_on"`                                 // is_on
 	Status     bool   `json:"status"`                                // status
+	IsDeleted  int    `json:"is_deleted" gorm:"default:0"`           // is_deleted
 	UpdateTime int64  `json:"update_time"`                           // update_time
 	CreateTime int64  `json:"create_time"`                           // create_time
 }

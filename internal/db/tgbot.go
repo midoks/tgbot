@@ -4,8 +4,34 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
+	"tgbot/internal/app/form"
 	"tgbot/internal/model"
 )
+
+func applyTgbotFilters(query *gorm.DB, field form.TgbotList) *gorm.DB {
+	if field.Key != "" {
+		query = query.Where("name LIKE ?", "%"+field.Key+"%").Or("mark LIKE ?", "%"+field.Key+"%")
+	}
+	return query
+}
+
+func GetTgbotListByArgs(field form.TgbotList) ([]model.Tgbot, int64, error) {
+	page := field.Page.Page
+	size := field.Page.Limit
+
+	baseQuery := applyTgbotFilters(db.Model(&model.Tgbot{}), field)
+
+	var count int64
+	if err := baseQuery.Where("is_deleted=?", 0).Count(&count).Error; err != nil {
+		return nil, 0, errors.Wrapf(err, "failed get tgbot count")
+	}
+
+	var list []model.Tgbot
+	if err := baseQuery.Order(columnName("create_time")+" desc").Where("is_deleted=?", 0).Offset((page - 1) * size).Limit(size).Find(&list).Error; err != nil {
+		return nil, 0, errors.Wrap(err, "failed get tgbot list")
+	}
+	return list, count, nil
+}
 
 func GetTgbotList(page, size int) ([]model.Tgbot, int64, error) {
 	mm := db.Model(&model.Tgbot{})
@@ -32,12 +58,20 @@ func TgbotDeleteByIDs(ids []int64) error {
 	return db.Delete(&model.Tgbot{}, ids).Error
 }
 
-func TgbotFindByID(id int64) (*model.Tgbot, error) {
-	var m model.Tgbot
-	if err := db.First(&m, id).Error; err != nil {
-		return nil, err
+func GetTgbotByID(id int64) (*model.Tgbot, error) {
+	var u model.Tgbot
+	if err := db.First(&u, id).Error; err != nil {
+		return nil, errors.Wrapf(err, "failed get tgbot data")
 	}
-	return &m, nil
+	return &u, nil
+}
+
+func GetTgbotDeletedID() (int64, error) {
+	var d model.Tgbot
+	if err := db.Order(columnName("create_time")).Where("is_deleted=?", 1).First(&d).Error; err != nil {
+		return 0, errors.Wrap(err, "failed get deleted tgbot")
+	}
+	return d.ID, nil
 }
 
 func TgbotUpdate(id int64, updates map[string]interface{}) error {

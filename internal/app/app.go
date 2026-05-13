@@ -209,6 +209,8 @@ func initRuoteAdmin(r *gin.Engine) {
 
 	backstage_admin.GET("/tg", backend_tg.Home)
 	backstage_admin.GET("/tg/add", backend_tg.Add)
+	backstage_admin.POST("/tg/add", backend_tg.PostAdd)
+	backstage_admin.GET("/tg/list", backend_tg.List)
 	backstage_admin.GET("/tg/log", backend_tg.Log)
 	backstage_admin.GET("/tg/log/list", backend_tg.LogList)
 	backstage_admin.POST("/tg/log/delete", backend_tg.LogDelete)

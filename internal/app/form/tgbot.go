@@ -34,7 +34,6 @@ type TgbotGroupAdd struct {
 
 type TgbotList struct {
 	Page
-	Gid int64  `form:"gid"`
 	Key string `form:"key"`
 }
 
