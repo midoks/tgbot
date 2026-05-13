@@ -181,6 +181,7 @@ func Init(d *gorm.DB) {
 		new(model.MonitorGroup),
 		new(model.MonitorLog),
 		new(model.DbNode),
+		new(model.Tgbot),
 		new(model.Log),
 		new(model.User),
 	)

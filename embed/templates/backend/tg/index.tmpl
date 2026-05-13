@@ -1,0 +1,201 @@
+{[template "backend/common/header.tmpl" .]}
+
+<div class="layui-fluid">
+    <div class="layui-col-md12" style="padding: 5px;">
+        <div class="layui-card">
+            <div class="layui-card-body">
+
+                <div class="layui-form toolbar" style="margin-top: 10px;margin-bottom: 10px;">
+                <form class="layui-form" action="" id="monitor_form" onclick="return false;">
+
+                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/add',800,600)">
+                        <i class="layui-icon layui-icon-add-circle"></i> 添加
+                    </button>
+
+
+                    <div class="layui-inline mr0">
+                        <div class="layui-input-inline mr0">
+                            <input type="text" name="key" placeholder="关键词" autocomplete="off" class="layui-input h30" value="">
+                        </div>
+                    </div>
+                
+
+                    <div class="layui-inline mr0">
+                        <button class="layui-btn layui-btn-sm" id="table-sreach" data-id="list" lay-submit lay-filter="table-sreach"><i class="layui-icon">&#xe615;</i>搜索
+                        </button>
+                    </div>
+                </form>
+                </div>
+
+                <div id="list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+//分组映射
+console.log('Groups data:', {[.groups | json]});
+var groupMapStr = {[.groups | json]};
+console.log('GroupMap string:', groupMapStr);
+var groupMap = [];
+try {
+    groupMap = JSON.parse(groupMapStr);
+    console.log('Parsed groupMap:', groupMap);
+} catch (e) {
+    console.error('Failed to parse groupMap:', e);
+    groupMap = [];
+}
+console.log('GroupMap type:', typeof groupMap);
+console.log('GroupMap is array:', Array.isArray(groupMap));
+var groupNameMap = {};
+if (Array.isArray(groupMap)) {
+    groupMap.forEach(function(group) {
+        groupNameMap[group.id] = group.name;
+        console.log('Added group:', group.id, group.name);
+    });
+} else {
+    console.error('groupMap is not an array:', groupMap);
+    groupMap = [];
+}
+console.log('GroupNameMap:', groupNameMap);
+
+layui.config({base: '/static/layuiadmin/'}).use(['table','jquery','layer'], function(){
+///
+var admin = layui.admin
+,$ = layui.$
+,form = layui.form
+,table = layui.table
+,layer = layui.layer;
+
+
+function renderTable(){
+    
+    var where_data = $('#monitor_form').serializeArray();
+    where_data = array2arr(where_data);
+
+    table.render({
+        elem: '#list',
+        url: '/{[.admin_path]}/tg/list',
+        title: '数据表',
+        cols: [[
+            {field:'name', title:'名称'},
+            {field:'log_list', title:'检查状态', toolbar:"#runTpl"},
+            {field:'gid', title:'分组',width:100, toolbar:"#gidTpl"},
+            {field:'type', title:'类型',width:80},
+            {field:'mark', title:'备注', toolbar:"#markTpl"},
+            {field:'status', title:'状态', toolbar:"#statusTpl",width:80},
+            {title:'操作', toolbar: '#cmdTpl', width:180, fixed: 'right'}
+         ]],
+        page: true,
+        where:where_data,
+        done: function(res, curr, count){
+            $('#list').next('.layui-table-view').find('span.error-tip').on('mouseenter', function(){
+                var errorMsg = $(this).attr('data-error');
+                var hour = String($(this).attr('data-hour')).padStart(2, '0');
+                var minute = String($(this).attr('data-minute')).padStart(2, '0');
+                var msg = '错误: ' + errorMsg + ' | 时间: ' + hour + ':' + minute;
+                layer.tips(msg, this, {tips: [1, '#FF5722']});
+            }).on('mouseleave', function(){
+                layer.closeAll('tips');
+            });
+            $('#list').next('.layui-table-view').find('span.speed-tip').on('mouseenter', function(){
+                var speed = $(this).attr('data-speed');
+                var sizeKB = (parseInt($(this).attr('data-size')) / 1024).toFixed(2) + ' KB';
+                var hour = String($(this).attr('data-hour')).padStart(2, '0');
+                var minute = String($(this).attr('data-minute')).padStart(2, '0');
+                var msg = '耗时: ' + speed + 'ms | 大小: ' + sizeKB + ' | 时间: ' + hour + ':' + minute;
+                layer.tips(msg, this, {tips: [1, '#5FB878']});
+            }).on('mouseleave', function(){
+                layer.closeAll('tips');
+            });
+        }
+    });
+
+}
+
+renderTable();
+
+// search
+form.on('submit(table-sreach)', function(){
+    renderTable();
+    return false;
+});
+
+
+
+table.on('toolbar', function(obj){
+    switch(obj.event){
+    };
+});
+
+table.on('tool(list)', function(obj){
+    switch(obj.event){
+        case 'status':opStatus(obj);break;
+    };
+});
+
+function opStatus(obj){
+    $.post('/{[.admin_path]}/monitor/trigger_status', {"id":obj.data.id}, function(data) {
+        showMsg(data.msg,function(){
+            if (data.code>-1){
+                location.reload();
+            }
+        },{icon:data.code>-1?1:2});
+    },'json');
+}
+
+
+///
+});
+</script>
+
+
+<script type="text/html" id="runTpl">
+{{# layui.each(d.log_list, function(i, item){ }}
+{{# if(item.is_valid == 1){ }}
+<span style="color:green;margin-right:2px;" data-speed="{{item.speed}}" data-size="{{item.size}}" data-hour="{{item.hour}}" data-minute="{{item.minute}}" class="speed-tip">●</span>
+{{# } else if(item.is_valid == 0){ }}
+<span style="color:red;margin-right:2px;" data-error="{{item.error_msg}}" data-hour="{{item.hour}}" data-minute="{{item.minute}}" class="error-tip">●</span>
+{{# } }}
+{{# }); }}
+</script>
+
+
+<script type="text/html" id="statusTpl">
+{{# if (d.status == 1){ }}
+<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="status">已启用</a>
+{{# } else if (d.status == 0) { }}
+<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="status">已暂停</a>
+{{# } }}
+</script>
+
+
+
+<script type="text/html" id="gidTpl">
+{{# var groupName = '-'; }}
+{{# if(d.gid == 0) { }}
+  {{# groupName = '-'; }}
+{{# } else { }}
+  {{# groupName = groupNameMap[d.gid] || d.gid; }}
+{{# } }}
+<span class="layui-badge layui-bg-blue">{{groupName}}</span>
+</script>
+
+
+<script type="text/html" id="markTpl">
+{{# if (d.mark){ }}
+{{d.mark}}
+{{# } else { }}
+<span style="color:#e2e2e2;">-</span>
+{{# } }}
+</script>
+
+
+<script type="text/html" id="cmdTpl">
+<a class="layui-btn layui-btn-xs" target="_blank" href="/tg?id={{d.id}}">查看</a>
+<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/add?id={{d.id}}',800,600)">修改</a>
+<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/delete','{{d.id}}')">删除</a>
+</script>
+
+{[template "backend/common/footer.tmpl" .]}

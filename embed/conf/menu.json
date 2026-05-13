@@ -1,5 +1,35 @@
 [
     {
+        "code": "tg",
+        "name": "TG机器人",
+        "icon": "layui-icon-engine",
+        "path": "",
+        "children": [
+            {
+                "code": "tg_list",
+                "name": "管理列表",
+                "path": "/tg",
+                "subapi":[
+                    {
+                        "code":"tg_list",
+                        "path": "/clusters/create"
+                    }
+                ]
+            },
+            {
+                "code": "tg_log",
+                "name": "机器人日志",
+                "path": "/tg/log",
+                "subapi":[
+                    {
+                        "code":"tg_log",
+                        "path": "/clusters/create"
+                    }
+                ]
+            }
+        ]
+    },
+    {
         "code": "monitor",
         "name": "监控管理",
         "icon": "layui-icon-engine",

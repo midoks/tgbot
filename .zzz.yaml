@@ -11,6 +11,7 @@ dirfilter:
 - templates
 ext:
 - go
+- tmpl
 lang: go
 enablerun: true
 action:

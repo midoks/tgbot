@@ -52,7 +52,7 @@ func ParseAdminId(login_uid interface{}) int64 {
 
 func CommonVer(c *gin.Context) map[string]interface{} {
 	data := map[string]interface{}{
-		"title":   "UPPK",
+		"title":   conf.App.Name,
 		"version": conf.App.Version,
 	}
 
@@ -90,6 +90,7 @@ func CommonVer(c *gin.Context) map[string]interface{} {
 
 func FrontendCommonVer(c *gin.Context) map[string]interface{} {
 	data := map[string]interface{}{
+		"title":   conf.App.Name,
 		"version": conf.App.Version,
 	}
 

@@ -25,6 +25,7 @@ import (
 	backend_log "tgbot/internal/app/handles/backend/log"
 	backend_monitor "tgbot/internal/app/handles/backend/monitor"
 	backend_system "tgbot/internal/app/handles/backend/system"
+	backend_tg "tgbot/internal/app/handles/backend/tg"
 	"tgbot/internal/app/handles/home"
 	"tgbot/internal/app/handles/install"
 )
@@ -205,6 +206,12 @@ func initRuoteAdmin(r *gin.Engine) {
 	backstage_admin.GET("/system/db/clean", backend_system.DbNodeClean)
 	backstage_admin.GET("/system/db/logs", backend_system.DbNodeLogs)
 	backstage_admin.GET("/system/db/update", backend_system.DbNodeUpdate)
+
+	backstage_admin.GET("/tg", backend_tg.Home)
+	backstage_admin.GET("/tg/add", backend_tg.Add)
+	backstage_admin.GET("/tg/log", backend_tg.Log)
+	backstage_admin.GET("/tg/log/list", backend_tg.LogList)
+	backstage_admin.POST("/tg/log/delete", backend_tg.LogDelete)
 
 }
 
