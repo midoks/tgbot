@@ -92,14 +92,14 @@
                     <td>
                         <div class="layui-inline">
                             <div class="layui-input-inline" style="float: left;">
-                                <select name="telegram_proxy_scheme" lay-verify="required" lay-search lay-filter="telegram_proxy_scheme">
-                                    <option value="socks5" {[if .Data]}{[if eq .Data.GetTelegramParams.TelegramProxyScheme "socks5" ]}selected{[end]}{[end]}>socks5://</option>
-                                    <option value="https" {[if .Data]}{[if eq .Data.GetTelegramParams.TelegramProxyScheme "https" ]}selected{[end]}{[end]}>https://</option>
-                                    <option value="http" {[if .Data]}{[if eq .Data.GetTelegramParams.TelegramProxyScheme "http" ]}selected{[end]}{[end]}>http://</option>
+                                <select name="proxy_scheme" lay-verify="required" lay-search>
+                                    <option value="socks5" {[if .Data]}{[if eq .Data.ProxyScheme "socks5" ]}selected{[end]}{[end]}>socks5://</option>
+                                    <option value="https" {[if .Data]}{[if eq .Data.ProxyScheme "https" ]}selected{[end]}{[end]}>https://</option>
+                                    <option value="http" {[if .Data]}{[if eq .Data.ProxyScheme "http" ]}selected{[end]}{[end]}>http://</option>
                                 </select>
                             </div>
                             <div class="layui-input-inline" style="float: left;">
-                                <input type="text" name="telegram_proxy_value" autocomplete="off" class="layui-input" placeholder="" value="{[if .Data]}{[.Data.GetTelegramParams.TelegramProxyValue]}{[end]}">
+                                <input type="text" name="proxy_value" autocomplete="off" class="layui-input" placeholder="" value="{[if .Data]}{[.Data.ProxyValue]}{[end]}">
                             </div>
                         </div>
                         <p class="layui-font-12">可选项，仅当API节点所在服务器无法直接连接Telegram API时填写；测试是否能够连接Telegram API的方法： 
@@ -111,8 +111,8 @@ curl -x "你的代理服务地址" https://api.telegram.org 来测试你的代�
                 <tr class="bls">
                     <td>启用当前Telegram监听</td>
                     <td>
-                        <input type="checkbox" name="telegram_listen_enable"
-                        {[if .Data]}{[if .Data.GetTelegramParams.TelegramListenEnable]}checked{[end]}
+                        <input type="checkbox" name="listen_enable"
+                        {[if .Data]}{[if .Data.ListenEnable]}checked{[end]}
                         {[else]}checked
                         {[end]}>
 

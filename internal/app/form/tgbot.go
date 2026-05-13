@@ -6,23 +6,16 @@ type TgbotAdd struct {
 	Name string `form:"name"`
 	Type string `form:"type"`
 
-	Addr                 string `form:"addr"`
-	CheckContent         string `form:"check_content"`
-	UserAgent            string `form:"user_agent"`
-	RelateMonitorGroupID int64  `form:"relate_monitor_group_id"`
+	Token        string `form:"token"`
+	ProxyScheme  string `form:"proxy_scheme"`
+	ProxyValue   string `form:"proxy_value"`
+	ListenEnable bool   `form:"listen_enable"`
 
-	TcpHost string `form:"tcp_host"`
-	TcpPort int    `form:"tcp_port"`
+	RelateMonitorGroupID int64 `form:"relate_monitor_group_id"`
 
-	UdpHost string `form:"udp_host"`
-	UdpPort int    `form:"udp_port"`
-
-	Interval     int    `form:"interval"`      // interval
-	IntervalType string `form:"interval_type"` // interval_type
-	MaxRetries   int    `form:"max_retries"`   // max_retries
-	Timeout      int    `form:"timeout"`       // timeout
-	Status       bool   `form:"status"`        // status
-	Mark         string `form:"mark"`          // mark
+	Timeout int    `form:"timeout"` // timeout
+	Status  bool   `form:"status"`  // status
+	Mark    string `form:"mark"`    // mark
 }
 
 type TgbotGroupAdd struct {
