@@ -91,9 +91,9 @@ func InitSettingAdminData() error {
 	}
 
 	common_data.SetAdminUIValue(model.SysSettingAdminUIValue{
-		DomainName:  "http://" + getLocalIP() + ":9191",
-		ProductName: "uptimepk",
-		SystemName:  "监控面板",
+		DomainName:  "http://" + getLocalIP() + ":9393",
+		ProductName: "TGBOT",
+		SystemName:  "TGBOT面板",
 	})
 	common_data.UpdateTime = time.Now().Unix()
 	var err error
@@ -119,8 +119,8 @@ func InitSettingWebData() error {
 	}
 
 	common_data.SetWebUIValue(model.SysSettingWebUIValue{
-		Name:     "UPPK",
-		Subtitle: "网站运行状态监控工具",
+		Name:     "TGBOT",
+		Subtitle: "TG机器人管理",
 	})
 	common_data.UpdateTime = time.Now().Unix()
 	var err error

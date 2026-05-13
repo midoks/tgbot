@@ -60,12 +60,6 @@ func InstallConf(data map[string]string) error {
 	// Update log settings
 	appConfig.Log.RootPath = Log.RootPath
 
-	// Update web settings
-	appConfig.Web.HTTPPort = 9191
-	// admin_path := fmt.Sprintf("/uptimepk_%s", randString(6))
-	admin_path := "uptimepk"
-	appConfig.Web.AdminPath = admin_path
-
 	// Update database settings
 	if strings.EqualFold(data["type"], "mysql") {
 		appConfig.Database.Type = "mysql"

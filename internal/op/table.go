@@ -16,7 +16,7 @@ var (
 func init() {
 	tablePrefix = conf.Database.TablePrefix
 	if tablePrefix == "" {
-		tablePrefix = "uppk_"
+		tablePrefix = "tg_"
 	}
 
 	tableTypes = map[string]tableTypeInfo{

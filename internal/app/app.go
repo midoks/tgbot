@@ -275,34 +275,6 @@ func Run() {
 		r.Use(gzip.Gzip(gzip.DefaultCompression))
 	}
 
-	// 设置 Permissions-Policy 头，允许 unload 事件
-	// r.Use(func(c *gin.Context) {
-	// 	c.Header("Permissions-Policy", "unload=*")
-	// 	c.Next()
-	// })
-
-	// if conf.App.Debug {
-	// 	r.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-	// 		p := param.Path
-	// 		if strings.Contains(p, ".js") || strings.Contains(p, ".css") {
-	// 			return ""
-	// 		}
-	// 		if strings.Contains(p, ".woff2") {
-	// 			return ""
-	// 		}
-	// 		return fmt.Sprintf("%s - [%s] \"%s %s %s\" %d %s \"%s\"\n",
-	// 			param.ClientIP,
-	// 			param.TimeStamp.Format(time.RFC1123),
-	// 			param.Method,
-	// 			p,
-	// 			param.Request.Proto,
-	// 			param.StatusCode,
-	// 			param.Latency,
-	// 			param.ErrorMessage,
-	// 		)
-	// 	}))
-	// }
-
 	r.Use(gin.Recovery())
 	r.SetTrustedProxies(nil)
 

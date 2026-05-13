@@ -42,7 +42,7 @@ func InitDb() {
 	database := conf.Database
 	prefix := database.TablePrefix
 	if prefix == "" {
-		prefix = "uppk_"
+		prefix = "tg_"
 	}
 
 	gormConfig := &gorm.Config{
@@ -215,7 +215,7 @@ func CheckDbConnnect(data map[string]string) error {
 	case "sqlite3":
 		dbPath := data["dbpath"]
 		if dbPath == "" {
-			dbPath = "data/uptimepk.db"
+			dbPath = "data/tgbot.db"
 		}
 
 		// 确保目录存在

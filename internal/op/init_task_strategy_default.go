@@ -28,7 +28,7 @@ func TelegramMessageHandlertrategyDefault(relateMonitorGroupID int64) tgtask.Mes
 		default:
 			var resultMsg string
 			if relateMonitorGroupID == 0 {
-				resultMsg = "未绑定监控分组,无法导入!"
+				resultMsg = "未绑定,无法导入!"
 			} else {
 				// 尝试解析域名数据
 				successCount, failCount, err := CreateMonitorsFromText(update.Message.Text, relateMonitorGroupID)

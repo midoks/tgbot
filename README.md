@@ -4,16 +4,16 @@
 
 ## 安装脚本
 ```
-curl -fsSL https://raw.githubusercontent.com/midoks/uptimepk/master/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/midoks/tgbot/master/scripts/install.sh | bash
 ```
 
 # dev
 ```
 go env -w GOPROXY=https://goproxy.cn,direct
-journalctl -u uptimepk -f
+journalctl -u tgbot -f
 ```
 
-# 1.0.6
+# 0.1
 ```
 修复一些问题。
 ```

@@ -22,7 +22,7 @@ func TelegramMessageHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Messa
 		case "/help":
 			return HandleHelpCommand(update, bot, false)
 		default:
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "监控面板未选择策略。")
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "未选择策略。")
 			_, err := bot.Send(msg)
 			return err
 		}
