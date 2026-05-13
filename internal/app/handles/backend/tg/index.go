@@ -93,3 +93,25 @@ func PostAdd(c *gin.Context) {
 	}
 	common.SuccessResp(c)
 }
+
+func PostSoftDelete(c *gin.Context) {
+	var field form.ID
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	err := db.TgbotSoftDeleteByID(field.ID)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	var data model.Tgbot
+	if err := db.GetDb().First(&data, field.ID).Error; err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	common.SuccessResp(c)
+}

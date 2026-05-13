@@ -1,6 +1,8 @@
 package db
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
@@ -49,6 +51,18 @@ func GetTgbotList(page, size int) ([]model.Tgbot, int64, error) {
 
 func TgbotDelete(id int64) error {
 	return db.Delete(&model.Tgbot{}, id).Error
+}
+
+func TgbotSoftDeleteByID(id int64) error {
+	if err := db.Model(&model.Tgbot{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"is_deleted":  1,
+			"update_time": time.Now().Unix(),
+		}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func TgbotDeleteByIDs(ids []int64) error {
