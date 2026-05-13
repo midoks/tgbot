@@ -1,0 +1,259 @@
+package monitor
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/gin-gonic/gin"
+
+	"tgbot/internal/app/common"
+	"tgbot/internal/app/form"
+	"tgbot/internal/db"
+	"tgbot/internal/model"
+	"tgbot/internal/monitortask"
+	"tgbot/internal/op"
+	"tgbot/internal/utils"
+)
+
+func Home(c *gin.Context) {
+	data := common.CommonVer(c)
+
+	groups, _ := db.GetMonitorGroupAll()
+	data["groups"] = groups
+
+	c.HTML(http.StatusOK, "backend/monitor/index.tmpl", data)
+}
+
+func List(c *gin.Context) {
+	var field form.MonitorList
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	result, count, err := db.GetMonitorListByArgs(field)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+	common.SuccessLayuiResp(c, count, "ok", result)
+}
+
+func Add(c *gin.Context) {
+	data := common.CommonVer(c)
+	data["id"] = c.Query("id")
+	if data["id"] != "" {
+		qid, err := strconv.ParseInt(data["id"].(string), 10, 64)
+		if err == nil {
+			monitor_data, err := db.GetMonitorByID(qid)
+			if err == nil {
+				data["Data"] = monitor_data
+			}
+		}
+	}
+
+	groups, _ := db.GetMonitorGroupAll()
+	data["groups"] = groups
+	c.HTML(http.StatusOK, "backend/monitor/add.tmpl", data)
+}
+
+func PostAdd(c *gin.Context) {
+	var field form.MonitorAdd
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	common_data := &model.Monitor{
+		Name:         field.Name,
+		Type:         field.Type,
+		Status:       utils.BoolToInt(field.Status),
+		Interval:     field.Interval,
+		IntervalType: field.IntervalType,
+		MaxRetries:   field.MaxRetries,
+		Timeout:      field.Timeout,
+		Gid:          field.Gid,
+		Mark:         field.Mark,
+		CreateTime:   time.Now().Unix(),
+	}
+
+	if field.IntervalType == "second" {
+		if !(field.Interval >= 5 && field.Interval <= 60) {
+			common.ErrorResp(c, errors.New("选择秒时,范围之在[5-60]"), -1)
+			return
+		}
+	} else if field.IntervalType == "minute" {
+		if !(field.Interval >= 1 && field.Interval <= 60) {
+			common.ErrorResp(c, errors.New("选择分钟时,范围之在[1-60]"), -1)
+			return
+		}
+	} else if field.IntervalType == "hour" {
+		if !(field.Interval >= 1 && field.Interval <= 23) {
+			common.ErrorResp(c, errors.New("选择小时时,范围之在[1-23]"), -1)
+			return
+		}
+	}
+
+	if field.Type == "http" {
+		common_data.SetHttpTypeParams(model.MonitorHttpTypeParams{
+			Addr:         field.Addr,
+			CheckContent: field.CheckContent,
+			UserAgent:    field.UserAgent,
+		})
+	}
+
+	if field.Type == "tcp" {
+		common_data.SetTcpTypeParams(model.MonitorTcpTypeParams{
+			Host: field.TcpHost,
+			Port: field.TcpPort,
+		})
+	}
+
+	if field.Type == "udp" {
+		common_data.SetUdpTypeParams(model.MonitorUdpTypeParams{
+			Host: field.UdpHost,
+			Port: field.UdpPort,
+		})
+	}
+
+	if field.ID != 0 {
+		_, err := db.GetMonitorByID(field.ID)
+		common_data.UpdateTime = time.Now().Unix()
+		if err == nil {
+			if err := db.GetDb().Model(&model.Monitor{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
+				common.ErrorResp(c, err, -1)
+				return
+			}
+			op.MonitorDeleteTask(*common_data)
+			op.MonitorAddTask(*common_data)
+		}
+
+	} else {
+		// 创建新数据时,先查找是否有已删除的数据
+		delete_id, err := db.GetMonitorDeletedID()
+		if err == nil {
+			field.ID = delete_id
+			// 先设置 IsDeleted 为 0，然后更新
+			if err := db.GetDb().Model(&model.Monitor{}).Where("id = ?", field.ID).Update("is_deleted", 0).Error; err != nil {
+				common.ErrorResp(c, err, -1)
+				return
+			}
+			// 然后更新其他字段
+			if err := db.GetDb().Model(&model.Monitor{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
+				common.ErrorResp(c, err, -1)
+				return
+			}
+			common_data.ID = field.ID
+			common_data.IsDeleted = 0
+
+			// 删除之前的监控日志（必须在添加任务之前）
+			if err := db.DeleteMonitorLogByMonitorID(field.ID); err != nil {
+				common.ErrorResp(c, err, -1)
+				return
+			}
+
+			op.MonitorAddTask(*common_data)
+		} else {
+			if err := db.GetDb().Create(common_data).Error; err != nil {
+				common.ErrorResp(c, err, -1)
+				return
+			}
+			op.MonitorAddTask(*common_data)
+		}
+	}
+	common.SuccessResp(c)
+}
+
+func MonitorTriggerStatus(c *gin.Context) {
+	var field form.ID
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	err := db.MonitorTriggerStatus(field.ID)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	var data model.Monitor
+	if err := db.GetDb().First(&data, field.ID).Error; err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	// 计划任务
+	if data.Status != 0 {
+		if err := op.MonitorAddTask(data); err != nil {
+			common.ErrorResp(c, err, -1)
+			return
+		}
+
+	} else {
+		if err := op.MonitorDeleteTask(data); err != nil {
+			common.ErrorResp(c, err, -1)
+			return
+		}
+	}
+	common.SuccessResp(c)
+}
+
+func MonitorReloadTask(c *gin.Context) {
+	// 重新加载所有监控任务
+	if err := op.MonitorReloadTask(); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+	common.SuccessResp(c)
+}
+func SoftDelete(c *gin.Context) {
+	var field form.ID
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	err := db.MonitorSoftDeleteByID(field.ID)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	var data model.Monitor
+	if err := db.GetDb().First(&data, field.ID).Error; err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	// 删除任务
+	if err := op.MonitorDeleteTask(data); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+	common.SuccessResp(c)
+}
+
+func Delete(c *gin.Context) {
+	var field form.ID
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	err := db.MonitorDeleteByID(field.ID)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	// 删除任务
+	mt_manager := monitortask.GetManager()
+	taskID := fmt.Sprintf("monitor_%d", field.ID)
+	mt_manager.RemoveTask(taskID)
+
+	common.SuccessResp(c)
+}

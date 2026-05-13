@@ -1,0 +1,47 @@
+package home
+
+import (
+	// "fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"tgbot/internal/app/common"
+	"tgbot/internal/db"
+	// "tgbot/internal/op"
+)
+
+func Index(c *gin.Context) {
+	data := common.FrontendCommonVer(c)
+
+	groups, _ := db.GetMonitorGroupAll()
+	data["groups"] = groups
+
+	monitor_list, _, _ := db.GetMonitorListSimple(1, 10)
+	data["monitor_list"] = monitor_list
+
+	c.HTML(http.StatusOK, "home/index.tmpl", data)
+}
+
+func Groups(c *gin.Context) {
+	data := common.FrontendCommonVer(c)
+
+	groups, _ := db.GetMonitorGroupAll()
+	data["groups"] = groups
+
+	c.HTML(http.StatusOK, "home/groups.tmpl", data)
+}
+
+func Monitor(c *gin.Context) {
+	data := common.FrontendCommonVer(c)
+
+	monitorId := c.Query("id")
+	data["monitor_id"] = monitorId
+
+	c.HTML(http.StatusOK, "home/monitor.tmpl", data)
+}
+
+func NotFound(c *gin.Context) {
+	data := common.CommonVer(c)
+	c.HTML(http.StatusOK, "404.tmpl", data)
+}

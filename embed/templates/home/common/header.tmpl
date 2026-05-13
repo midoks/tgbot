@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{[if .setting_web_ui]}{[.setting_web_ui.GetWebUIValue.Name]}{[end]} - {[if .setting_web_ui]}{[.setting_web_ui.GetWebUIValue.Subtitle]}{[end]}</title>
+<link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v={[.version]}">
+<link rel="stylesheet" href="/static/home/css/home.css?v={[.version]}">
+<script src="/static/home/js/home.js?v={[.version]}"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{[if .setting_web_ui]}{[.setting_web_ui.GetWebUIValue.Name]}{[end]}</h1>
+
+            <div class="nav-links">
+                <a href="/">首页</a>
+            </div>
+        </header>

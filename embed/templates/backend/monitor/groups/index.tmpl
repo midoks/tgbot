@@ -1,0 +1,179 @@
+{[template "backend/common/header.tmpl" .]}
+
+
+<div class="layui-fluid">
+    <div class="layui-col-md12" style="padding: 5px;">
+        <div class="layui-card">
+            <div class="layui-card-body">
+
+                <div class="layui-form toolbar" style="margin-top: 10px;margin-bottom: 10px;">
+                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/monitor/group/add',500,350)">
+                        <i class="layui-icon layui-icon-add-circle"></i> 添加
+                    </button>
+                </div>
+
+                <div id="list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+layui.config({base: '/static/layuiadmin/'}).use(['table','jquery'], function(){
+///
+var admin = layui.admin
+,$ = layui.$
+,form = layui.form
+,table = layui.table;
+
+var tableIns, tableData = [];
+
+tableIns = table.render({
+    elem: '#list',
+    url: '/{[.admin_path]}/monitor/group/list',
+    title: '数据表',
+    cols: [[
+        {type: 'order', title: '', width: 60, toolbar:"#dragTpl"},
+        {field:'name', title:'分组名称'},
+        {field:'monitor_num', title:'监控数'},
+        {field:'real_time', title:'TG关联', toolbar:"#tgTpl"},
+        {field:'status', title:'状态', toolbar:"#statusTpl",width:100},
+        {title:'操作', toolbar: '#cmdTpl', width:180, fixed: 'right'}
+    ]],
+    page: true,
+    done: function(res, curr, count){
+        // 存储表格数据
+        tableData = res.data;
+        console.log('Table data stored:', tableData);
+        // 表格渲染完成后初始化排序
+        initSortable();
+    }
+});
+
+function initSortable(){
+    console.log('Initializing sortable...');
+    
+    // 查找表格body元素
+    var tableBody = $('.layui-table-body');
+    console.log('Found table body elements:', tableBody.length);
+    
+    if(tableBody.length === 0) {
+        console.error('Table body not found');
+        return;
+    }
+    
+    // 初始化拖动排序
+    tableBody.sortable({
+        items: 'tr[data-index]',
+        cursor: 'move',
+        axis: 'y',
+        update: function(event, ui){
+            console.log('Sort update triggered');
+            
+            // 获取排序后的顺序
+            var ids = [];
+            var seen = new Set();
+            console.log('Stored table data:', tableData);
+            
+            $('.layui-table-body tr[data-index]').each(function(index, item){
+                var dataIndex = $(item).attr('data-index');
+                console.log('Found row with data-index:', dataIndex);
+                if(dataIndex !== undefined) {
+                    var idx = parseInt(dataIndex);
+                    if(tableData[idx] && tableData[idx].id) {
+                        var id = tableData[idx].id;
+                        if(!seen.has(id)) {
+                            ids.push(id);
+                            seen.add(id);
+                            console.log('Added id:', id);
+                        } else {
+                            console.log('Skipping duplicate id:', id);
+                        }
+                    }
+                }
+            });
+            
+            console.log('Final ids:', ids);
+            
+            if(ids.length > 0) {
+                console.log('Sending sort request...');
+                // 发送排序更新请求
+                $.ajax({
+                    url: '/{[.admin_path]}/monitor/group/sort',
+                    type: 'POST',
+                    data: {ids: ids.join(',')},
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log('Sort response:', data);
+                        showMsg(data.msg, function(){
+                            if(data.code > -1 || data.Code > -1) {
+                                tableIns.reload();
+                            }
+                        }, {icon: (data.code > -1 || data.Code > -1) ? 1 : 2});
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Sort request failed:', error);
+                        console.error('Response text:', xhr.responseText);
+                    }
+                });
+            }
+        }
+    }).disableSelection();
+    
+    console.log('Sortable initialized');
+}
+
+table.on('toolbar', function(obj){
+    switch(obj.event){
+    };
+});
+
+table.on('tool(list)', function(obj){
+    switch(obj.event){
+        case 'status':opStatus(obj);break;
+    };
+});
+
+function opStatus(obj){
+    $.post('/{[.admin_path]}/monitor/group/trigger_status', {"id":obj.data.id}, function(data) {
+        showMsg(data.msg,function(){
+            if (data.code>-1){
+                location.reload();
+            }
+        },{icon:data.code>-1?1:2});
+    },'json');
+}
+
+///
+});
+</script>
+
+
+<script type="text/html" id="dragTpl">
+<div style="cursor: move; text-align: center; color: #999;"><i class="layui-icon layui-icon-more"></i></div>
+</script>
+
+<script type="text/html" id="tgTpl">
+{{# if (d.real_time == 1){ }}
+<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="real_time">是</a>
+{{# } else if (d.real_time == 0) { }}
+<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="real_time">否</a>
+{{# } }}
+</script>
+
+<script type="text/html" id="statusTpl">
+{{# if (d.status == 1){ }}
+<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="status">已启用</a>
+{{# } else if (d.status == 0) { }}
+<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="status">已暂停</a>
+{{# } }}
+</script>
+
+<script type="text/html" id="cmdTpl">
+<a class="layui-btn layui-btn-xs" target="_blank" href="/groups?id={{d.id}}">查看</a>
+<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/monitor/group/add?id={{d.id}}',500,350)">修改</a>
+<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/monitor/group/delete','{{d.id}}')">删除</a>
+</script>
+
+{[template "backend/common/footer.tmpl" .]}

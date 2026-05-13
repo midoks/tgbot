@@ -1,0 +1,28 @@
+dev: true
+title: zzz
+frequency: 3
+dirfilter:
+- tmp
+- .git
+- public
+- scripts
+- vendor
+- logs
+- templates
+ext:
+- go
+lang: go
+enablerun: true
+action:
+  before:
+  # - go mod tidy
+  # - go mod vendor
+  - find . -name ".DS_Store" -print -delete
+  - gofmt -w ./
+  after:
+  - ps -ef|grep 'tgbot web'| grep -v grep | awk '{print $2}' | xargs kill -9
+  - ./tgbot web &
+  exit:
+  - ps -ef|grep 'tgbot web'| grep -v grep | awk '{print $2}' | xargs kill -9
+  - rm -rf ./tgbot
+link: https://github.com/midoks/zzz

@@ -1,0 +1,45 @@
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/urfave/cli"
+
+	"tgbot/internal/app"
+	"tgbot/internal/conf"
+	"tgbot/internal/db"
+	"tgbot/internal/log"
+	"tgbot/internal/op"
+)
+
+var Web = cli.Command{
+	Name:        "web",
+	Usage:       "this command start web services",
+	Description: `start web services`,
+	Action:      runWeb,
+	Flags: []cli.Flag{
+		stringFlag("config, c", "", "custom configuration file path"),
+	},
+}
+
+func runWeb(c *cli.Context) error {
+	err := conf.InitConf(c.String("config"))
+	if err != nil {
+		fmt.Println("runWeb:", err)
+		return err
+	}
+
+	log.Init()
+	db.InitDb()
+
+	// 初始化telegram监听任务
+	if conf.Security.InstallLock {
+		op.InitTelegramTask()
+		go op.InitMonitorask()
+	}
+
+	op.InitCleanTask()
+	op.SysLog("启动成功!")
+	app.Run()
+	return nil
+}
