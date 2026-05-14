@@ -130,15 +130,10 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	// 判断消息是否会被删除（包含违禁词或@符号）
 	op := 0 // 默认正常
 	matchedWord := ""
-	if strings.Contains(msgInfo.MsgContent, "@") {
+	hasBanword, word := checkContentForBanwords(msgInfo.MsgContent)
+	if hasBanword {
 		op = 1
-		matchedWord = "@"
-	} else {
-		hasBanword, word := checkContentForBanwords(msgInfo.MsgContent)
-		if hasBanword {
-			op = 1
-			matchedWord = word
-		}
+		matchedWord = word
 	}
 
 	// 记录消息到日志
