@@ -164,7 +164,7 @@ function opStatus(obj){
 
 
 <script type="text/html" id="cmdTpl">
-<a class="layui-btn layui-btn-xs" target="_blank" href="/{[$.admin_path]}/tg/details?id={{d.id}}">详情</a>
+<a class="layui-btn layui-btn-xs" href="/{[$.admin_path]}/tg/details?id={{d.id}}">详情</a>
 <a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/add?id={{d.id}}',800,600)">修改</a>
 <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/delete','{{d.id}}')">删除</a>
 </script>

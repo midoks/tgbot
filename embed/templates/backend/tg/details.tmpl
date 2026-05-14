@@ -8,20 +8,20 @@
             <div class="layui-card-body">
 
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom: 1rem;">
-                    <a href="/{[.admin_path]}/admin/index" style="display:flex;align-items:center;">
+                    <a href="/{[.admin_path]}/tg" style="display:flex;align-items:center;">
                         <i class="layui-icon layui-icon-return"></i>  
                     </a>
 
                     <span style="margin:0;font-size:18px;">
-                        {[if .Data]}{[.Data.FullName]} ({[.Data.Username]}){[end]}
+                        {[if .Data]}{[.Data.Name]}{[end]}
                     </span>
                 </div>
 
                 <div class="layui-tab layui-tab-brief">
                     <ul class="layui-tab-title" id="status">
                         <li data-status="1" class="layui-this">概览</li>
-                        <li data-status="2"><a href="/{[.admin_path]}/admin/update?id={[.id]}">修改</a></li>
-                        <li data-status="3"><a href="/{[.admin_path]}/admin/api?id={[.id]}">API</a></li>
+                        <li data-status="2"><a href="/{[.admin_path]}/tg/update?id={[.id]}">修改</a></li>
+                        <li data-status="3"><a href="/{[.admin_path]}/tg/api?id={[.id]}">API</a></li>
                     </ul>
                 </div>
 

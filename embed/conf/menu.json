@@ -12,7 +12,11 @@
                 "subapi":[
                     {
                         "code":"tg_list",
-                        "path": "/clusters/create"
+                        "path": "/tg/details"
+                    },
+                    {
+                        "code":"tg_list",
+                        "path": "/tg/details"
                     }
                 ]
             },
@@ -23,7 +27,7 @@
                 "subapi":[
                     {
                         "code":"tg_log",
-                        "path": "/clusters/create"
+                        "path": "/tg/log"
                     }
                 ]
             }
