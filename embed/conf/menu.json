@@ -21,6 +21,17 @@
                 ]
             },
             {
+                "code": "tg_banword",
+                "name": "封禁关键词",
+                "path": "/tg/banword",
+                "subapi":[
+                    {
+                        "code":"tg_banword",
+                        "path": "/tg/banword"
+                    }
+                ]
+            },
+            {
                 "code": "tg_log",
                 "name": "机器人日志",
                 "path": "/tg/log",

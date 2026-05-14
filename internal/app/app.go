@@ -169,6 +169,10 @@ func initRuoteAdmin(r *gin.Engine) {
 	backstage_admin.GET("/tg/log/list", backend_tg.LogList)
 	backstage_admin.POST("/tg/log/delete", backend_tg.LogDelete)
 
+	backstage_admin.GET("/tg/banword", backend_tg.Banword)
+	backstage_admin.GET("/tg/banword/list", backend_tg.BanwordList)
+	backstage_admin.POST("/tg/banword/delete", backend_tg.BanwordDelete)
+
 }
 
 func initRuoteInstall(r *gin.Engine) {
