@@ -11,6 +11,7 @@ import (
 	"tgbot/internal/app/form"
 	"tgbot/internal/db"
 	"tgbot/internal/model"
+	"tgbot/internal/op"
 )
 
 func Home(c *gin.Context) {
@@ -96,6 +97,8 @@ func PostAdd(c *gin.Context) {
 			}
 		}
 	}
+
+	op.ReloadTelegramTask()
 	common.SuccessResp(c)
 }
 
@@ -129,11 +132,14 @@ func TgbotTriggerStatus(c *gin.Context) {
 	}
 
 	err := db.TgbotTriggerStatus(field.ID)
-	if err == nil {
-		common.SuccessResp(c)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
 		return
 	}
-	common.ErrorResp(c, err, -1)
+
+	op.ReloadTelegramTask()
+	common.SuccessResp(c)
+
 }
 
 func TgbotTriggerListenEnable(c *gin.Context) {
@@ -144,11 +150,12 @@ func TgbotTriggerListenEnable(c *gin.Context) {
 	}
 
 	err := db.TgbotTriggerListenEnable(field.ID)
-	if err == nil {
-		common.SuccessResp(c)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
 		return
 	}
-	common.ErrorResp(c, err, -1)
+	op.ReloadTelegramTask()
+	common.SuccessResp(c)
 }
 
 func Details(c *gin.Context) {

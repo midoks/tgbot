@@ -57,6 +57,8 @@ func ReloadTelegramTask() {
 }
 
 func InitTelegramTask() {
+
+	fmt.Println("InitTelegramTask")
 	manager := tgtask.GetManager()
 
 	telegram_list, err := db.GetTgbotAll()
