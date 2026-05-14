@@ -27,12 +27,7 @@
 
                 <div class="cluster-boards bls_hover" style="margin-top: 10px;">
                     <div class="layui-row layui-col-space10">
-                        <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
-                            <div class="ccc_hover">
-                                <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;">全名</div>
-                                <div style="font-size: 12px; color: #333;">{[if .Data]}{[.Data.FullName]}{[end]}</div>
-                            </div>
-                        </div>
+    
                         <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
                             <div class="ccc_hover">
                                 <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;">状态</div>
@@ -40,38 +35,6 @@
                                     {[if .Data]}
                                         {[if .Data.Status]}<span style="color:#16b777;">已启用</span>
                                         {[else]}<span style="color:#e2e2e2;">已停用</span>
-                                        {[end]}
-                                    {[end]}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
-                            <div class="ccc_hover">
-                                <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;">登录用户名</div>
-                                <div style="font-size: 12px;">
-                                    {[if .Data]}{[.Data.Username]}{[end]}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
-                            <div class="ccc_hover">
-                                <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;">允许登录</div>
-                                <div style="font-size: 12px;">
-                                    {[if .Data]}
-                                        {[if .Data.AllowLogin]}<span style="color:#16b777;">Y</span>
-                                        {[else]}<span style="color:#e2e2e2;">N</span>
-                                        {[end]}
-                                    {[end]}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
-                            <div class="ccc_hover">
-                                <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;;">超级管理员</div>
-                                <div style="font-size: 12px;">
-                                    {[if .Data]}
-                                        {[if .Data.SuperAdmin]}<span style="color:#16b777;">Y</span>
-                                        {[else]}<span style="color:#e2e2e2;">N</span>
                                         {[end]}
                                     {[end]}
                                 </div>
