@@ -95,8 +95,6 @@ form.on('submit(table-sreach)', function(){
     return false;
 });
 
-
-
 table.on('toolbar', function(obj){
     switch(obj.event){
     };
@@ -123,18 +121,6 @@ function opStatus(obj){
 });
 </script>
 
-
-<script type="text/html" id="runTpl">
-{{# layui.each(d.log_list, function(i, item){ }}
-{{# if(item.is_valid == 1){ }}
-<span style="color:green;margin-right:2px;" data-speed="{{item.speed}}" data-size="{{item.size}}" data-hour="{{item.hour}}" data-minute="{{item.minute}}" class="speed-tip">●</span>
-{{# } else if(item.is_valid == 0){ }}
-<span style="color:red;margin-right:2px;" data-error="{{item.error_msg}}" data-hour="{{item.hour}}" data-minute="{{item.minute}}" class="error-tip">●</span>
-{{# } }}
-{{# }); }}
-</script>
-
-
 <script type="text/html" id="listenenableTpl">
 {{# if (d.listen_enable == 1){ }}
 <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="listen_enable">已启用</a>
@@ -153,12 +139,9 @@ function opStatus(obj){
 </script>
 
 
-
 <script type="text/html" id="markTpl">
-{{# if (d.mark){ }}
-{{d.mark}}
-{{# } else { }}
-<span style="color:#e2e2e2;">-</span>
+{{# if (d.mark){ }}{{d.mark}}
+{{# } else { }}<span style="color:#e2e2e2;">-</span>
 {{# } }}
 </script>
 

@@ -192,7 +192,7 @@ func initRuoteAdmin(r *gin.Engine) {
 	backstage_admin.GET("/tg/list", backend_tg.List)
 	backstage_admin.POST("/tg/delete", backend_tg.PostSoftDelete)
 	backstage_admin.GET("/tg/details", backend_tg.Details)
-	backstage_admin.GET("/tg/trigger_status", backend_tg.TgbotTriggerStatus)
+	backstage_admin.POST("/tg/trigger_status", backend_tg.TgbotTriggerStatus)
 
 	backstage_admin.GET("/tg/log", backend_tg.Log)
 	backstage_admin.GET("/tg/log/list", backend_tg.LogList)

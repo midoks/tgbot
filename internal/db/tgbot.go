@@ -1,6 +1,7 @@
 package db
 
 import (
+	// "fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -93,20 +94,28 @@ func TgbotTriggerStatus(id int64) error {
 	if err := db.First(&data, id).Error; err != nil {
 		return errors.Wrapf(err, "failed get tgbot")
 	}
-
-	var status bool
-	if data.Status {
-		status = false
-	} else {
-		status = true
-	}
-
-	data.UpdateTime = time.Now().Unix()
-	data.Status = status
-
-	if err := db.Model(&model.Admin{}).
+	if err := db.Model(&model.Tgbot{}).
 		Where("id = ?", id).
-		Updates(&data).Error; err != nil {
+		Updates(map[string]interface{}{
+			"status":      !data.Status,
+			"update_time": time.Now().Unix(),
+		}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func TgbotTriggerListenEnable(id int64) error {
+	var data model.Tgbot
+	if err := db.First(&data, id).Error; err != nil {
+		return errors.Wrapf(err, "failed get tgbot")
+	}
+	if err := db.Model(&model.Tgbot{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"listen_enable": !data.ListenEnable,
+			"update_time":   time.Now().Unix(),
+		}).Error; err != nil {
 		return err
 	}
 	return nil
