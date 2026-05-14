@@ -325,11 +325,20 @@ func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, e
 		// 按时间范围过滤
 		dbQuery = dbQuery.Where("create_time >= ? AND create_time <= ?", start.Unix(), end.Unix())
 
-		err = dbQuery.Order("create_time DESC").Find(&logs).Error
+		err = dbQuery.Find(&logs).Error
 		if err != nil {
 			return nil, 0, err
 		}
 		allLogs = append(allLogs, logs...)
+	}
+
+	// 全局按时间倒序排序
+	for i := 0; i < len(allLogs); i++ {
+		for j := i + 1; j < len(allLogs); j++ {
+			if allLogs[i].CreateTime < allLogs[j].CreateTime {
+				allLogs[i], allLogs[j] = allLogs[j], allLogs[i]
+			}
+		}
 	}
 
 	// 计算总数
