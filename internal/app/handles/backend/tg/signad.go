@@ -15,7 +15,7 @@ import (
 
 func Signad(c *gin.Context) {
 	data := common.CommonVer(c)
-	c.HTML(http.StatusOK, "backend/tg/banword/index.tmpl", data)
+	c.HTML(http.StatusOK, "backend/tg/signad/index.tmpl", data)
 }
 
 func SignadAdd(c *gin.Context) {
@@ -25,11 +25,11 @@ func SignadAdd(c *gin.Context) {
 	data := common.CommonVer(c)
 	data["id"] = id
 
-	banword_data, err := db.GetTgbotBanwordByID(idint)
+	banword_data, err := db.GetTgbotSignadByID(idint)
 	if err == nil {
 		data["Data"] = banword_data
 	}
-	c.HTML(http.StatusOK, "backend/tg/banword/add.tmpl", data)
+	c.HTML(http.StatusOK, "backend/tg/signad/add.tmpl", data)
 }
 
 func PostSignadAdd(c *gin.Context) {
@@ -73,7 +73,7 @@ func SignadList(c *gin.Context) {
 		return
 	}
 
-	result, count, err := db.GetTgbotBanwordListByArgs(field)
+	result, count, err := db.GetTgbotSignadListByArgs(field)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return
