@@ -63,3 +63,11 @@ func DeleteTgbotBanwordByID(id int64) error {
 	var d model.TgbotBanWord
 	return db.Where("id = ?", id).Delete(&d).Error
 }
+
+func GetActiveTgbotBanwords() ([]model.TgbotBanWord, error) {
+	var list []model.TgbotBanWord
+	if err := db.Where("status = ?", true).Find(&list).Error; err != nil {
+		return nil, errors.Wrap(err, "failed get active banwords")
+	}
+	return list, nil
+}

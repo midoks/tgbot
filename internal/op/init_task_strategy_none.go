@@ -76,14 +76,44 @@ func parseMessageInfo(update tgbotapi.Update) MessageInfo {
 	}
 }
 
+// checkContentForBanwords 检查内容是否包含违禁词
+// 返回是否包含违禁词，以及匹配的违禁词
+func checkContentForBanwords(content string) (bool, string) {
+	banwords, err := db.GetActiveTgbotBanwords()
+	if err != nil {
+		fmt.Printf("Failed to get active banwords: %v\n", err)
+		return false, ""
+	}
+
+	for _, banword := range banwords {
+		words := strings.Split(banword.Word, ",")
+		for _, word := range words {
+			word = strings.TrimSpace(word)
+			if word != "" && strings.Contains(content, word) {
+				return true, word
+			}
+		}
+	}
+
+	return false, ""
+}
+
 // logAndPrintMessage 记录并打印消息
 func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	msgInfo := parseMessageInfo(update)
 
-	// 判断消息是否会被删除（包含@符号）
+	// 判断消息是否会被删除（包含违禁词或@符号）
 	op := "0" // 默认正常
+	matchedWord := ""
 	if strings.Contains(msgInfo.MsgContent, "@") {
-		op = "1" // 标记为删除
+		op = "1"
+		matchedWord = "@"
+	} else {
+		hasBanword, word := checkContentForBanwords(msgInfo.MsgContent)
+		if hasBanword {
+			op = "1"
+			matchedWord = word
+		}
 	}
 
 	// 记录消息到日志
@@ -104,14 +134,14 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s, Op: %s\n",
 		msgInfo.ChatName, msgInfo.MsgType, msgInfo.MsgContent, msgInfo.FromUserName, op)
 
-	// 如果消息内容包含@符号，3秒后删除消息
+	// 如果消息需要删除，3秒后删除消息
 	if op == "1" {
 		go func() {
 			time.Sleep(3 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
 			_, _ = bot.Send(deleteMsg)
-			fmt.Printf("Deleted message %d from chat %d (contained @)\n",
-				update.Message.MessageID, update.Message.Chat.ID)
+			fmt.Printf("Deleted message %d from chat %d (matched: %q)\n",
+				update.Message.MessageID, update.Message.Chat.ID, matchedWord)
 		}()
 	}
 }
