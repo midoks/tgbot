@@ -40,15 +40,21 @@ func createTgbotLogTable(tableName string) error {
 	CREATE TABLE %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		bot_id INTEGER NOT NULL,
-		message TEXT NOT NULL,
+		chat_id INTEGER NOT NULL,
+		chat_name TEXT,
+		chat_type TEXT,
+		user_id INTEGER,
+		from_user_name TEXT,
+		message_type TEXT,
+		content TEXT,
 		level TEXT DEFAULT 'info',
 		create_time INTEGER NOT NULL
 	)`, tableName)
 	return db.Exec(createSQL).Error
 }
 
-// AddTgbotLog 添加日志到分表
-func AddTgbotLog(botID int64, message, level string) error {
+// AddTgbotLog 添加日志到分表（完整字段版本）
+func AddTgbotLog(botID, chatID, userID int64, chatName, chatType, fromUserName, messageType, content, level string) error {
 	now := time.Now()
 	tableName := getTgbotLogTableName(now)
 
@@ -58,10 +64,16 @@ func AddTgbotLog(botID int64, message, level string) error {
 	}
 
 	log := model.TgbotLogs{
-		BotID:      botID,
-		Message:    message,
-		Level:      level,
-		CreateTime: now.Unix(),
+		BotID:        botID,
+		ChatID:       chatID,
+		ChatName:     chatName,
+		ChatType:     chatType,
+		UserID:       userID,
+		FromUserName: fromUserName,
+		MessageType:  messageType,
+		Content:      content,
+		Level:        level,
+		CreateTime:   now.Unix(),
 	}
 
 	return db.Table(tableName).Create(&log).Error
@@ -106,6 +118,22 @@ func DeleteTgbotLogsByBotID(botID int64) error {
 	return nil
 }
 
+// DeleteTgbotLogsByChatID 删除指定聊天的所有日志
+func DeleteTgbotLogsByChatID(chatID int64) error {
+	var tableNames []string
+	err := db.Raw("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'tgbot_logs_%'").Scan(&tableNames).Error
+	if err != nil {
+		return err
+	}
+
+	for _, tableName := range tableNames {
+		if err := db.Table(tableName).Where("chat_id = ?", chatID).Delete(&model.TgbotLogs{}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // GetTgbotLogsByBotIDAndDateRange 根据 BotID 和日期范围查询日志
 func GetTgbotLogsByBotIDAndDateRange(botID int64, start, end time.Time) ([]model.TgbotLogs, error) {
 	var allLogs []model.TgbotLogs
@@ -124,6 +152,36 @@ func GetTgbotLogsByBotIDAndDateRange(botID int64, start, end time.Time) ([]model
 		var logs []model.TgbotLogs
 		err = db.Table(tableName).
 			Where("bot_id = ?", botID).
+			Where("create_time >= ? AND create_time <= ?", start.Unix(), end.Unix()).
+			Order("create_time DESC").
+			Find(&logs).Error
+		if err != nil {
+			return nil, err
+		}
+		allLogs = append(allLogs, logs...)
+	}
+
+	return allLogs, nil
+}
+
+// GetTgbotLogsByChatID 根据 ChatID 查询日志
+func GetTgbotLogsByChatID(chatID int64, start, end time.Time) ([]model.TgbotLogs, error) {
+	var allLogs []model.TgbotLogs
+	tables := getTgbotLogTableNamesInRange(start, end)
+
+	for _, tableName := range tables {
+		var exists bool
+		err := db.Raw("SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name=?)", tableName).Scan(&exists).Error
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			continue
+		}
+
+		var logs []model.TgbotLogs
+		err = db.Table(tableName).
+			Where("chat_id = ?", chatID).
 			Where("create_time >= ? AND create_time <= ?", start.Unix(), end.Unix()).
 			Order("create_time DESC").
 			Find(&logs).Error
