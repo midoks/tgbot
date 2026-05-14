@@ -3,13 +3,29 @@ package op
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"tgbot/internal/db"
+	"tgbot/internal/model"
 	"tgbot/internal/tgtask"
 )
+
+var (
+	banwordsCache     []model.TgbotBanWord
+	banwordsCacheTime time.Time
+	banwordsCacheMu   sync.RWMutex
+	cacheExpireTime   = 5 * time.Minute
+)
+
+func ClearBanwordsCache() {
+	banwordsCacheMu.Lock()
+	defer banwordsCacheMu.Unlock()
+	banwordsCache = nil
+	banwordsCacheTime = time.Time{}
+}
 
 // MessageInfo 消息信息结构体
 type MessageInfo struct {
@@ -104,7 +120,7 @@ func parseMessageInfo(update tgbotapi.Update) MessageInfo {
 // checkContentForBanwords 检查内容是否包含违禁词
 // 返回是否包含违禁词，以及匹配的违禁词
 func checkContentForBanwords(content string) (bool, string) {
-	banwords, err := db.GetActiveTgbotBanwords()
+	banwords, err := getActiveBanwordsWithCache()
 	if err != nil {
 		fmt.Printf("Failed to get active banwords: %v\n", err)
 		return false, ""
@@ -121,6 +137,40 @@ func checkContentForBanwords(content string) (bool, string) {
 	}
 
 	return false, ""
+}
+
+// getActiveBanwordsWithCache 获取违禁词列表（带缓存）
+func getActiveBanwordsWithCache() ([]model.TgbotBanWord, error) {
+	banwordsCacheMu.RLock()
+	if banwordsCache != nil && time.Since(banwordsCacheTime) < cacheExpireTime {
+		result := make([]model.TgbotBanWord, len(banwordsCache))
+		copy(result, banwordsCache)
+		banwordsCacheMu.RUnlock()
+		return result, nil
+	}
+	banwordsCacheMu.RUnlock()
+
+	banwordsCacheMu.Lock()
+	defer banwordsCacheMu.Unlock()
+
+	if banwordsCache != nil && time.Since(banwordsCacheTime) < cacheExpireTime {
+		result := make([]model.TgbotBanWord, len(banwordsCache))
+		copy(result, banwordsCache)
+		return result, nil
+	}
+
+	list, err := db.GetActiveTgbotBanwords()
+	if err != nil {
+		return nil, err
+	}
+
+	banwordsCache = make([]model.TgbotBanWord, len(list))
+	copy(banwordsCache, list)
+	banwordsCacheTime = time.Now()
+
+	result := make([]model.TgbotBanWord, len(list))
+	copy(result, list)
+	return result, nil
 }
 
 // logAndPrintMessage 记录并打印消息

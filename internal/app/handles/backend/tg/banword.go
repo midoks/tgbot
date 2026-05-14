@@ -11,6 +11,7 @@ import (
 	"tgbot/internal/app/form"
 	"tgbot/internal/db"
 	"tgbot/internal/model"
+	"tgbot/internal/op"
 )
 
 func Banword(c *gin.Context) {
@@ -63,6 +64,7 @@ func PostBanwordAdd(c *gin.Context) {
 
 	}
 
+	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }
 
@@ -93,6 +95,7 @@ func TgbotBanwordTriggerStatus(c *gin.Context) {
 		common.ErrorResp(c, err, -1)
 		return
 	}
+	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }
 
@@ -108,5 +111,6 @@ func TgbotBanwordDelete(c *gin.Context) {
 		common.ErrorResp(c, err, -1)
 		return
 	}
+	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }
