@@ -30,6 +30,26 @@
         ]
     },
     {
+        "code": "log",
+        "name": "日志审计",
+        "icon": "layui-icon-refresh-3",
+        "path": "/log",
+        "subapi":[
+            {
+                "code":"log",
+                "path": "/log/clean"
+            },
+            {
+                "code":"log",
+                "path": "/log/settings"
+            },
+            {
+                "code":"log",
+                "path": "/log/list"
+            }
+        ]
+    },
+        {
         "code": "admin",
         "name": "管理员",
         "icon": "layui-icon-user",
@@ -96,26 +116,6 @@
                         "path": "/admin/recipients/tasks"
                     }
                 ]
-            }
-        ]
-    },
-    {
-        "code": "log",
-        "name": "日志审计",
-        "icon": "layui-icon-refresh-3",
-        "path": "/log",
-        "subapi":[
-            {
-                "code":"log",
-                "path": "/log/clean"
-            },
-            {
-                "code":"log",
-                "path": "/log/settings"
-            },
-            {
-                "code":"log",
-                "path": "/log/list"
             }
         ]
     },

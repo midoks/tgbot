@@ -1,6 +1,7 @@
 package tg
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -141,6 +142,7 @@ func Details(c *gin.Context) {
 	idint, _ := strconv.ParseInt(id, 10, 64)
 	tgbot_data, _ := db.GetTgbotByID(idint)
 
+	fmt.Println("xxxx")
 	data := common.CommonVer(c)
 	data["id"] = id
 	data["Data"] = tgbot_data
