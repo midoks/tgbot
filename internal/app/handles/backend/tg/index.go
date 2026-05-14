@@ -136,6 +136,21 @@ func TgbotTriggerStatus(c *gin.Context) {
 	common.ErrorResp(c, err, -1)
 }
 
+func TgbotTriggerListenEnable(c *gin.Context) {
+	var field form.ID
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	err := db.TgbotTriggerListenEnable(field.ID)
+	if err == nil {
+		common.SuccessResp(c)
+		return
+	}
+	common.ErrorResp(c, err, -1)
+}
+
 func Details(c *gin.Context) {
 	id := c.Query("id")
 	idint, _ := strconv.ParseInt(id, 10, 64)
