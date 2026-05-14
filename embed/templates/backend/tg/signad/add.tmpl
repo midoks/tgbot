@@ -67,13 +67,20 @@
             <colgroup><col width="150"><col></colgroup>
             <tbody>
                 <tr>
-                    <td>封禁关键词</td>
+                    <td>用户ID</td>
                     <td>
                         <div class="layui-input-inline">
-                            <input type="text" name="word" autocomplete="off" class="layui-input" value="{[if .Data]}{[.Data.Word]}{[end]}" placeholder="封禁关键词">
+                            <input type="text" name="user_id" autocomplete="off" class="layui-input" value="{[if .Data]}{[.Data.UserID]}{[end]}" placeholder="用户ID">
                         </div>
-                        <br/>
-                        <p class="layui-font-12">包含关键词，删除!</p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>用户名称</td>
+                    <td>
+                        <div class="layui-input-inline">
+                            <input type="text" name="from_user_name" autocomplete="off" class="layui-input" value="{[if .Data]}{[.Data.FromUserName]}{[end]}" placeholder="用户名称">
+                        </div>
                     </td>
                 </tr>
 
