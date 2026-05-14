@@ -56,6 +56,7 @@ function renderTable(){
         cols: [[
             {field:'name', title:'名称'},
             {field:'mark', title:'备注', toolbar:"#markTpl"},
+            {field:'listen_enable', title:'监听', toolbar:"#listenenableTpl"},
             {field:'status', title:'状态', toolbar:"#statusTpl",width:80},
             {title:'操作', toolbar: '#cmdTpl', width:180, fixed: 'right'}
          ]],
@@ -108,7 +109,7 @@ table.on('tool(list)', function(obj){
 });
 
 function opStatus(obj){
-    $.post('/{[.admin_path]}/monitor/trigger_status', {"id":obj.data.id}, function(data) {
+    $.post('/{[.admin_path]}/tg/trigger_status', {"id":obj.data.id}, function(data) {
         showMsg(data.msg,function(){
             if (data.code>-1){
                 location.reload();
@@ -131,6 +132,15 @@ function opStatus(obj){
 <span style="color:red;margin-right:2px;" data-error="{{item.error_msg}}" data-hour="{{item.hour}}" data-minute="{{item.minute}}" class="error-tip">●</span>
 {{# } }}
 {{# }); }}
+</script>
+
+
+<script type="text/html" id="listenenableTpl">
+{{# if (d.listen_enable == 1){ }}
+<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="listen_enable">已启用</a>
+{{# } else if (d.listen_enable == 0) { }}
+<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="listen_enable">已暂停</a>
+{{# } }}
 </script>
 
 

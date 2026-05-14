@@ -56,12 +56,13 @@ func PostAdd(c *gin.Context) {
 	}
 
 	common_data := &model.Tgbot{
-		Name:        field.Name,
-		Mark:        field.Mark,
-		Token:       field.Token,
-		ProxyScheme: field.ProxyScheme,
-		ProxyValue:  field.ProxyValue,
-		CreateTime:  time.Now().Unix(),
+		Name:         field.Name,
+		Mark:         field.Mark,
+		Token:        field.Token,
+		ProxyScheme:  field.ProxyScheme,
+		ProxyValue:   field.ProxyValue,
+		ListenEnable: field.ListenEnable,
+		CreateTime:   time.Now().Unix(),
 	}
 
 	if field.ID != 0 {

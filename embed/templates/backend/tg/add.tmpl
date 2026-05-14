@@ -177,6 +177,12 @@ form.on("submit(submit_tg)", function(data){
         field['status'] = 0;
     }
 
+    if (field['listen_enable'] == "on"){
+        field['listen_enable'] = 1;
+    } else {
+        field['listen_enable'] = 0;
+    }
+
     $.post("/{[$.admin_path]}/tg/add", field, function(res) {
         showMsg(res.msg, function(){
             layer.close(index);
