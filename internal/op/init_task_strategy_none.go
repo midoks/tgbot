@@ -44,13 +44,22 @@ func parseMessageInfo(update tgbotapi.Update) MessageInfo {
 		msgContent = update.Message.Audio.Title
 	} else if update.Message.Sticker != nil {
 		msgType = "sticker"
-		msgContent = update.Message.Sticker.Emoji
+		if update.Message.Sticker.Emoji != "" {
+			msgContent = update.Message.Sticker.Emoji
+		} else {
+			msgContent = "[Sticker]"
+		}
+	} else if update.Message.Dice != nil {
+		msgType = "dice"
+		msgContent = fmt.Sprintf("%s: %d", update.Message.Dice.Emoji, update.Message.Dice.Value)
 	} else if update.Message.Location != nil {
 		msgType = "location"
 		msgContent = fmt.Sprintf("lat: %f, lng: %f", update.Message.Location.Latitude, update.Message.Location.Longitude)
 	} else if update.Message.Contact != nil {
 		msgType = "contact"
 		msgContent = update.Message.Contact.PhoneNumber
+	} else {
+		msgContent = "[Message]"
 	}
 
 	chatName := ""
@@ -67,12 +76,28 @@ func parseMessageInfo(update tgbotapi.Update) MessageInfo {
 		chatName = fmt.Sprintf("ChatID:%d", update.Message.Chat.ID)
 	}
 
+	fromUserName := ""
+	if update.Message.From != nil {
+		if update.Message.From.UserName != "" {
+			fromUserName = "@" + update.Message.From.UserName
+		} else if update.Message.From.FirstName != "" {
+			fromUserName = update.Message.From.FirstName
+			if update.Message.From.LastName != "" {
+				fromUserName += " " + update.Message.From.LastName
+			}
+		} else {
+			fromUserName = fmt.Sprintf("UserID:%d", update.Message.From.ID)
+		}
+	} else {
+		fromUserName = "Unknown"
+	}
+
 	return MessageInfo{
 		MsgType:      msgType,
 		MsgContent:   msgContent,
 		ChatName:     chatName,
 		ChatType:     update.Message.Chat.Type,
-		FromUserName: update.Message.From.UserName,
+		FromUserName: fromUserName,
 	}
 }
 
@@ -103,15 +128,15 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	msgInfo := parseMessageInfo(update)
 
 	// 判断消息是否会被删除（包含违禁词或@符号）
-	op := "0" // 默认正常
+	op := 0 // 默认正常
 	matchedWord := ""
 	if strings.Contains(msgInfo.MsgContent, "@") {
-		op = "1"
+		op = 1
 		matchedWord = "@"
 	} else {
 		hasBanword, word := checkContentForBanwords(msgInfo.MsgContent)
 		if hasBanword {
-			op = "1"
+			op = 1
 			matchedWord = word
 		}
 	}
@@ -131,11 +156,11 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	)
 
 	// 打印消息信息
-	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s, Op: %s\n",
+	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s, Op: %d\n",
 		msgInfo.ChatName, msgInfo.MsgType, msgInfo.MsgContent, msgInfo.FromUserName, op)
 
 	// 如果消息需要删除，3秒后删除消息
-	if op == "1" {
+	if op == 1 {
 		go func() {
 			time.Sleep(3 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)

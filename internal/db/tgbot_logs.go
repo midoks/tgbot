@@ -70,7 +70,7 @@ func createTgbotLogTable(tableName string) error {
 			from_user_name TEXT,
 			message_type TEXT,
 			content TEXT,
-			op TEXT DEFAULT '0',
+			op INTEGER DEFAULT '0',
 			level TEXT DEFAULT 'info',
 			create_time INTEGER NOT NULL
 		)`, tableName)
@@ -86,7 +86,7 @@ func createTgbotLogTable(tableName string) error {
 		"from_user_name TEXT",
 		"message_type TEXT",
 		"content TEXT",
-		"op TEXT DEFAULT '0'",
+		"op INTEGER DEFAULT '0'",
 	}
 
 	for _, fieldDef := range fieldsToAdd {
@@ -138,7 +138,7 @@ func createTgbotLogTable(tableName string) error {
 }
 
 // AddTgbotLog 添加日志到分表（完整字段版本）
-func AddTgbotLog(botID, chatID, userID int64, chatName, chatType, fromUserName, messageType, content, op, level string) error {
+func AddTgbotLog(botID, chatID, userID int64, chatName, chatType, fromUserName, messageType, content string, op int, level string) error {
 	now := time.Now()
 	tableName := getTgbotLogTableName(now)
 

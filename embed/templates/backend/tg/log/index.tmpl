@@ -65,7 +65,7 @@ function renderTable(){
     // 获取表单参数
     var where_data = $('#tgbot_log_form').serializeArray();
     where_data = array2arr(where_data);
-    
+
     tableIns = table.render({
         elem: '#list',
         url: '/{[.admin_path]}/tg/log/list',
@@ -81,6 +81,7 @@ function renderTable(){
             {field:'message_type', title:'消息类型', width:120},
             {field:'content', title:'消息内容', width:300},
             {field:'level', title:'日志级别', width:120},
+            {field:'op', title:'操作', width:120,toolbar:"#opTpl"},
             {field:'create_time', title:'创建时间', width:185, templet: function(d){return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
             {title:'操作', toolbar: '#cmdTpl', width:70, fixed: 'right'}
         ]],
@@ -101,6 +102,16 @@ form.on('submit(table-sreach)', function(){
 });
 ///
 });
+</script>
+
+<script type="text/html" id="opTpl">
+{{# if (d.op == 1){ }}
+<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="op">删除</a>
+{{# } else if (d.op == 2){ }}
+<a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="op">已封禁</a>
+{{# } else { }}
+<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="op">正常</a>
+{{# } }}
 </script>
 
 <script type="text/html" id="cmdTpl">

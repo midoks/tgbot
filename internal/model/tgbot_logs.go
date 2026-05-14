@@ -10,7 +10,7 @@ type TgbotLogs struct {
 	FromUserName string `json:"from_user_name"`       // from user name
 	MessageType  string `json:"message_type"`         // message type: text, photo, document, etc.
 	Content      string `json:"content"`              // message content
-	Op           string `json:"op"`                   // op: 0,正常;1:删除,2:封禁
+	Op           int    `json:"op"`                   // op: 0,正常;1:删除;2:封禁
 	Level        string `json:"level"`                // log level: info, warn, error
 	CreateTime   int64  `json:"create_time"`          // create time
 }
