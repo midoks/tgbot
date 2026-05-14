@@ -2,6 +2,8 @@ package op
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
@@ -94,6 +96,17 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	// 打印消息信息
 	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s\n",
 		msgInfo.ChatName, msgInfo.MsgType, msgInfo.MsgContent, msgInfo.FromUserName)
+
+	// 如果消息内容包含@符号，3秒后删除消息
+	if strings.Contains(msgInfo.MsgContent, "@") {
+		go func() {
+			time.Sleep(3 * time.Second)
+			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
+			_, _ = bot.Send(deleteMsg)
+			fmt.Printf("Deleted message %d from chat %d (contained @)\n",
+				update.Message.MessageID, update.Message.Chat.ID)
+		}()
+	}
 }
 
 // 未选择策略
