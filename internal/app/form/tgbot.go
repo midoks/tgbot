@@ -18,13 +18,6 @@ type TgbotAdd struct {
 	Mark    string `form:"mark"`    // mark
 }
 
-type TgbotGroupAdd struct {
-	ID       int64  `form:"id"`
-	Name     string `form:"name"`
-	RealTime bool   `form:"real_time"`
-	Status   bool   `form:"status"`
-}
-
 type TgbotList struct {
 	Page
 	Key string `form:"key"`

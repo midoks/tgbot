@@ -33,6 +33,14 @@ func GetTgbotBanwordListByArgs(field form.TgbotList) ([]model.TgbotBanWord, int6
 	return list, count, nil
 }
 
+func GetTgbotBanwordByID(id int64) (*model.TgbotBanWord, error) {
+	var u model.TgbotBanWord
+	if err := db.First(&u, id).Error; err != nil {
+		return nil, errors.Wrapf(err, "failed get tgbot data")
+	}
+	return &u, nil
+}
+
 func DeleteTgbotBanwordByID(id int64) error {
 	var d model.TgbotBanWord
 	return db.Where("id = ?", id).Delete(&d).Error
