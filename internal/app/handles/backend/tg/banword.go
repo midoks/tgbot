@@ -2,12 +2,15 @@ package tg
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"tgbot/internal/app/common"
 	"tgbot/internal/app/form"
 	"tgbot/internal/db"
+	"tgbot/internal/model"
 )
 
 func Banword(c *gin.Context) {
@@ -22,7 +25,7 @@ func BanwordAdd(c *gin.Context) {
 	data := common.CommonVer(c)
 	data["id"] = id
 
-	banword_data, err := db.GetTgbotBanwordByID(qid)
+	banword_data, err := db.GetTgbotBanwordByID(idint)
 	if err == nil {
 		data["Data"] = banword_data
 	}
@@ -36,7 +39,7 @@ func PostBanwordAdd(c *gin.Context) {
 		return
 	}
 
-	common_data := &model.TgbotBanwordAdd{
+	common_data := &model.TgbotBanWord{
 		Word:       field.Word,
 		Status:     field.Status,
 		CreateTime: time.Now().Unix(),
@@ -46,7 +49,7 @@ func PostBanwordAdd(c *gin.Context) {
 		_, err := db.GetTgbotBanwordByID(field.ID)
 		if err == nil {
 			common_data.UpdateTime = time.Now().Unix()
-			if err := db.GetDb().Model(&model.TgbotBanwordAdd{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
+			if err := db.GetDb().Model(&model.TgbotBanWord{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
 				common.ErrorResp(c, err, -1)
 				return
 			}
@@ -76,6 +79,21 @@ func BanwordList(c *gin.Context) {
 		return
 	}
 	common.SuccessLayuiResp(c, count, "ok", result)
+}
+
+func TgbotBanwordTriggerStatus(c *gin.Context) {
+	var field form.ID
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	err := db.TgbotBanwordTriggerStatus(field.ID)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+	common.SuccessResp(c)
 }
 
 func BanwordDelete(c *gin.Context) {

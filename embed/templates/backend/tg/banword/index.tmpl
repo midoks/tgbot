@@ -8,7 +8,7 @@
                 <div class="layui-form toolbar" style="margin-top: 10px;margin-bottom: 10px;">
                 <form class="layui-form" action="" id="tgbot_banword_form" onclick="return false;">
 
-                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/banword/add',800,600)">
+                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/banword/add',600,300)">
                         <i class="layui-icon layui-icon-add-circle"></i> 添加
                     </button>
 
@@ -59,7 +59,7 @@ function renderTable(){
             {field:'status', title:'状态', toolbar:"#statusTpl"},
              {field:'update_time', title:'更新时间', width:185, templet: function(d){return layui.util.toDateString(d.update_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
             {field:'create_time', title:'创建时间', width:185, templet: function(d){return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
-            {title:'操作', toolbar: '#cmdTpl', width:70, fixed: 'right'}
+            {title:'操作', toolbar: '#cmdTpl', width:130, fixed: 'right'}
         ]],
         page: true,
         done: function(res, curr, count){
@@ -76,6 +76,23 @@ form.on('submit(table-sreach)', function(){
     renderTable();
     return false;
 });
+
+table.on('tool(list)', function(obj){
+    switch(obj.event){
+        case 'status':opStatus(obj);break;
+    };
+});
+
+function opStatus(obj){
+    $.post('/{[.admin_path]}/tg/banword/trigger_status', {"id":obj.data.id}, function(data) {
+        showMsg(data.msg,function(){
+            if (data.code>-1){
+                location.reload();
+            }
+        },{icon:data.code>-1?1:2});
+    },'json');
+}
+
 ///
 });
 </script>
@@ -89,6 +106,7 @@ form.on('submit(table-sreach)', function(){
 </script>
 
 <script type="text/html" id="cmdTpl">
+<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/banword/add?id={{d.id}}',600,300)">修改</a>
 <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/banword/delete','{{d.id}}','{{d.bot_id}}')">删除</a>
 </script>
 

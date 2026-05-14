@@ -171,6 +171,8 @@ func initRuoteAdmin(r *gin.Engine) {
 
 	backstage_admin.GET("/tg/banword", backend_tg.Banword)
 	backstage_admin.GET("/tg/banword/add", backend_tg.BanwordAdd)
+	backstage_admin.POST("/tg/banword/add", backend_tg.PostBanwordAdd)
+	backstage_admin.POST("/tg/banword/trigger_status", backend_tg.TgbotBanwordTriggerStatus)
 	backstage_admin.GET("/tg/banword/list", backend_tg.BanwordList)
 	backstage_admin.POST("/tg/banword/delete", backend_tg.BanwordDelete)
 

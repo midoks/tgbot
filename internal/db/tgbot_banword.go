@@ -1,6 +1,8 @@
 package db
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
@@ -39,6 +41,22 @@ func GetTgbotBanwordByID(id int64) (*model.TgbotBanWord, error) {
 		return nil, errors.Wrapf(err, "failed get tgbot data")
 	}
 	return &u, nil
+}
+
+func TgbotBanwordTriggerStatus(id int64) error {
+	var data model.TgbotBanWord
+	if err := db.First(&data, id).Error; err != nil {
+		return errors.Wrapf(err, "failed get tgbot")
+	}
+	if err := db.Model(&model.TgbotBanWord{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"status":      !data.Status,
+			"update_time": time.Now().Unix(),
+		}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func DeleteTgbotBanwordByID(id int64) error {
