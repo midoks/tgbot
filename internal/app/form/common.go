@@ -29,3 +29,13 @@ type IDs struct {
 type DatabaseCommon struct {
 	TableName string `form:"table_name"`
 }
+
+// TgbotLogPage 日志查询参数
+type TgbotLogPage struct {
+	Page  int    `form:"page"`
+	Limit int    `form:"limit"`
+	Times string `form:"times"`  // 日期范围
+	Type  string `form:"type"`   // 查询类型
+	Key   string `form:"key"`    // 关键词
+	BotID int64  `form:"bot_id"` // 机器人ID
+}

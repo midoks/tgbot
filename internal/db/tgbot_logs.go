@@ -2,8 +2,11 @@ package db
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
+	"tgbot/internal/app/form"
 	"tgbot/internal/model"
 )
 
@@ -23,7 +26,29 @@ func getTgbotLogTableNamesInRange(start, end time.Time) []string {
 	return tables
 }
 
-// createTgbotLogTable 如果表不存在则创建
+// parseDateTime 解析多种日期时间格式
+func parseDateTime(s string) (time.Time, error) {
+	// 尝试多种格式
+	formats := []string{
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04",
+		"2006-01-02",
+		"2006/01/02 15:04:05",
+		"2006/01/02 15:04",
+		"2006/01/02",
+	}
+
+	for _, format := range formats {
+		t, err := time.Parse(format, s)
+		if err == nil {
+			return t, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("unable to parse datetime: %s", s)
+}
+
+// createTgbotLogTable 如果表不存在则创建，如果存在则添加缺失的字段
 func createTgbotLogTable(tableName string) error {
 	// 检查表是否存在
 	var exists bool
@@ -31,26 +56,83 @@ func createTgbotLogTable(tableName string) error {
 	if err != nil {
 		return err
 	}
-	if exists {
-		return nil
+
+	if !exists {
+		// 创建表
+		createSQL := fmt.Sprintf(`
+		CREATE TABLE %s (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			bot_id INTEGER NOT NULL,
+			chat_id INTEGER NOT NULL,
+			chat_name TEXT,
+			chat_type TEXT,
+			user_id INTEGER,
+			from_user_name TEXT,
+			message_type TEXT,
+			content TEXT,
+			level TEXT DEFAULT 'info',
+			create_time INTEGER NOT NULL
+		)`, tableName)
+		return db.Exec(createSQL).Error
 	}
 
-	// 创建表
-	createSQL := fmt.Sprintf(`
-	CREATE TABLE %s (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		bot_id INTEGER NOT NULL,
-		chat_id INTEGER NOT NULL,
-		chat_name TEXT,
-		chat_type TEXT,
-		user_id INTEGER,
-		from_user_name TEXT,
-		message_type TEXT,
-		content TEXT,
-		level TEXT DEFAULT 'info',
-		create_time INTEGER NOT NULL
-	)`, tableName)
-	return db.Exec(createSQL).Error
+	// 表已存在，检查并添加缺失的字段
+	fieldsToAdd := []string{
+		"chat_id INTEGER NOT NULL DEFAULT 0",
+		"chat_name TEXT",
+		"chat_type TEXT",
+		"user_id INTEGER DEFAULT 0",
+		"from_user_name TEXT",
+		"message_type TEXT",
+		"content TEXT",
+	}
+
+	for _, fieldDef := range fieldsToAdd {
+		// 获取字段名（第一个空格之前的部分）
+		fieldName := ""
+		for _, c := range fieldDef {
+			if c == ' ' {
+				break
+			}
+			fieldName += string(c)
+		}
+
+		// 检查字段是否存在
+		query := fmt.Sprintf("PRAGMA table_info(%s)", tableName)
+		rows, err := db.Raw(query).Rows()
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		fieldExists := false
+		for rows.Next() {
+			var cid int
+			var name string
+			var typ string
+			var notNull int
+			var dfltValue interface{}
+			var pk int
+			err := rows.Scan(&cid, &name, &typ, &notNull, &dfltValue, &pk)
+			if err != nil {
+				return err
+			}
+			if name == fieldName {
+				fieldExists = true
+				break
+			}
+		}
+
+		if !fieldExists {
+			// 添加字段
+			alterSQL := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s", tableName, fieldDef)
+			if err := db.Exec(alterSQL).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // AddTgbotLog 添加日志到分表（完整字段版本）
@@ -164,32 +246,105 @@ func GetTgbotLogsByBotIDAndDateRange(botID int64, start, end time.Time) ([]model
 	return allLogs, nil
 }
 
-// GetTgbotLogsByChatID 根据 ChatID 查询日志
-func GetTgbotLogsByChatID(chatID int64, start, end time.Time) ([]model.TgbotLogs, error) {
-	var allLogs []model.TgbotLogs
+// GetTgbotLogListByArgs 根据条件查询日志列表（支持分页）
+func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, error) {
+	// 解析日期范围
+	var start, end time.Time
+	var err error
+
+	if field.Times != "" {
+		// 假设格式为 "2026-05-01 - 2026-05-14" 或带时间的格式
+		parts := strings.Split(field.Times, " - ")
+		if len(parts) == 2 {
+			start, err = parseDateTime(strings.TrimSpace(parts[0]))
+			if err != nil {
+				return nil, 0, err
+			}
+			end, err = parseDateTime(strings.TrimSpace(parts[1]))
+			if err != nil {
+				return nil, 0, err
+			}
+			// 结束日期设为当天结束时间
+			end = end.AddDate(0, 0, 1).Add(-time.Nanosecond)
+		}
+	} else {
+		// 默认查询最近7天
+		end = time.Now()
+		start = end.AddDate(0, 0, -7)
+	}
+
+	// 获取日期范围内的所有表
 	tables := getTgbotLogTableNamesInRange(start, end)
 
+	var allLogs []model.TgbotLogs
 	for _, tableName := range tables {
 		var exists bool
 		err := db.Raw("SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name=?)", tableName).Scan(&exists).Error
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		if !exists {
 			continue
 		}
 
 		var logs []model.TgbotLogs
-		err = db.Table(tableName).
-			Where("chat_id = ?", chatID).
-			Where("create_time >= ? AND create_time <= ?", start.Unix(), end.Unix()).
-			Order("create_time DESC").
-			Find(&logs).Error
+		dbQuery := db.Table(tableName)
+
+		// 根据查询类型和关键词过滤
+		if field.Type != "" && field.Key != "" {
+			switch field.Type {
+			case "bot_id":
+				botID, _ := strconv.ParseInt(field.Key, 10, 64)
+				dbQuery = dbQuery.Where("bot_id = ?", botID)
+			case "chat_id":
+				chatID, _ := strconv.ParseInt(field.Key, 10, 64)
+				dbQuery = dbQuery.Where("chat_id = ?", chatID)
+			case "chat_name":
+				dbQuery = dbQuery.Where("chat_name LIKE ?", "%"+field.Key+"%")
+			case "from_user_name":
+				dbQuery = dbQuery.Where("from_user_name LIKE ?", "%"+field.Key+"%")
+			case "message_type":
+				dbQuery = dbQuery.Where("message_type = ?", field.Key)
+			case "content":
+				dbQuery = dbQuery.Where("content LIKE ?", "%"+field.Key+"%")
+			default:
+				// 模糊搜索所有文本字段
+				dbQuery = dbQuery.Where("chat_name LIKE ? OR from_user_name LIKE ? OR content LIKE ?",
+					"%"+field.Key+"%", "%"+field.Key+"%", "%"+field.Key+"%")
+			}
+		}
+
+		// 按BotID过滤
+		if field.BotID > 0 {
+			dbQuery = dbQuery.Where("bot_id = ?", field.BotID)
+		}
+
+		// 按时间范围过滤
+		dbQuery = dbQuery.Where("create_time >= ? AND create_time <= ?", start.Unix(), end.Unix())
+
+		err = dbQuery.Order("create_time DESC").Find(&logs).Error
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		allLogs = append(allLogs, logs...)
 	}
 
-	return allLogs, nil
+	// 计算总数
+	total := int64(len(allLogs))
+
+	// 分页处理
+	if field.Page > 0 && field.Limit > 0 {
+		offset := (field.Page - 1) * field.Limit
+		if offset < len(allLogs) {
+			endIdx := offset + field.Limit
+			if endIdx > len(allLogs) {
+				endIdx = len(allLogs)
+			}
+			allLogs = allLogs[offset:endIdx]
+		} else {
+			allLogs = []model.TgbotLogs{}
+		}
+	}
+
+	return allLogs, total, nil
 }

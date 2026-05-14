@@ -2,7 +2,6 @@ package tg
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,20 +17,17 @@ func Log(c *gin.Context) {
 }
 
 func LogList(c *gin.Context) {
-	pageStr := c.Query("page")
-	limitStr := c.Query("limit")
-
-	page, _ := strconv.Atoi(pageStr)
-	limit, _ := strconv.Atoi(limitStr)
-
-	if page < 1 {
-		page = 1
-	}
-	if limit < 1 || limit > 100 {
-		limit = 10
+	var field form.TgbotLogPage
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
 	}
 
-	result, count, _ := db.GetTgbotList(page, limit)
+	result, count, err := db.GetTgbotLogListByArgs(field)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
 	common.SuccessLayuiResp(c, count, "ok", result)
 }
 
@@ -42,7 +38,9 @@ func LogDelete(c *gin.Context) {
 		return
 	}
 
-	err := db.TgbotDelete(field.ID)
+	// 删除日志记录（需要根据实际需求实现）
+	// 由于是分表，需要遍历所有表删除
+	err := db.DeleteTgbotLogsByBotID(field.ID)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return
