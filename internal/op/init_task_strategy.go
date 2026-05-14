@@ -2,8 +2,7 @@ package op
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-
-	"tgbot/internal/db"
+	// "tgbot/internal/db"
 )
 
 // HandleStatusCommand 处理/status命令
@@ -15,14 +14,14 @@ func HandleStatusCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI) error {
 
 // HandleLastCommand 处理/last命令
 func HandleLastCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI, relateMonitorGroupID int64) error {
-	if relateMonitorGroupID > 0 {
-		_, err := db.GetAdminRecipientsByMonitorGid(relateMonitorGroupID)
-		if err != nil {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "获取监控数据失败: "+err.Error())
-			_, err := bot.Send(msg)
-			return err
-		}
-	}
+	// if relateMonitorGroupID > 0 {
+	// 	_, err := db.GetAdminRecipientsByMonitorGid(relateMonitorGroupID)
+	// 	if err != nil {
+	// 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "获取监控数据失败: "+err.Error())
+	// 		_, err := bot.Send(msg)
+	// 		return err
+	// 	}
+	// }
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "暂无监控数据")
 	_, err := bot.Send(msg)

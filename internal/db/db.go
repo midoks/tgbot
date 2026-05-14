@@ -169,11 +169,6 @@ func Init(d *gorm.DB) {
 	err = AutoMigrate(
 		new(model.SysSetting),
 		new(model.Admin),
-		new(model.AdminRecipients),
-		new(model.AdminRecipientsMonitorRelated),
-		new(model.AdminMediaInstance),
-		new(model.AdminMediaGroup),
-		new(model.AdminRecipientsTasks),
 		new(model.DbNode),
 		new(model.Tgbot),
 		new(model.Log),
