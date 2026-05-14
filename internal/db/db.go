@@ -171,6 +171,7 @@ func Init(d *gorm.DB) {
 		new(model.Admin),
 		new(model.DbNode),
 		new(model.Tgbot),
+		new(model.TgbotBanWord),
 		new(model.Log),
 		new(model.User),
 	)

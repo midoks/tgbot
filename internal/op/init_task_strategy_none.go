@@ -80,6 +80,12 @@ func parseMessageInfo(update tgbotapi.Update) MessageInfo {
 func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	msgInfo := parseMessageInfo(update)
 
+	// 判断消息是否会被删除（包含@符号）
+	op := "0" // 默认正常
+	if strings.Contains(msgInfo.MsgContent, "@") {
+		op = "1" // 标记为删除
+	}
+
 	// 记录消息到日志（完整字段）
 	go db.AddTgbotLog(
 		bot.Self.ID,
@@ -90,15 +96,16 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		msgInfo.FromUserName,
 		msgInfo.MsgType,
 		msgInfo.MsgContent,
+		op,
 		"info",
 	)
 
 	// 打印消息信息
-	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s\n",
-		msgInfo.ChatName, msgInfo.MsgType, msgInfo.MsgContent, msgInfo.FromUserName)
+	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s, Op: %s\n",
+		msgInfo.ChatName, msgInfo.MsgType, msgInfo.MsgContent, msgInfo.FromUserName, op)
 
 	// 如果消息内容包含@符号，3秒后删除消息
-	if strings.Contains(msgInfo.MsgContent, "@") {
+	if op == "1" {
 		go func() {
 			time.Sleep(3 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
@@ -126,9 +133,9 @@ func TelegramMessageHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Messa
 			// 记录并打印消息
 			logAndPrintMessage(update, bot)
 
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "未选择策略。")
-			_, err := bot.Send(msg)
-			return err
+			// msg := tgbotapi.NewMessage(update.Message.Chat.ID, "未选择策略。")
+			// _, err := bot.Send(msg)
+			return nil
 		}
 	}
 }
