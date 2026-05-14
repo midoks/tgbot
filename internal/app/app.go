@@ -173,8 +173,15 @@ func initRuoteAdmin(r *gin.Engine) {
 	backstage_admin.GET("/tg/banword/add", backend_tg.BanwordAdd)
 	backstage_admin.POST("/tg/banword/add", backend_tg.PostBanwordAdd)
 	backstage_admin.POST("/tg/banword/trigger_status", backend_tg.TgbotBanwordTriggerStatus)
-	backstage_admin.GET("/tg/banword/list", backend_tg.BanwordList)
-	backstage_admin.POST("/tg/banword/delete", backend_tg.BanwordDelete)
+	backstage_admin.GET("/tg/banword/list", backend_tg.TgbotBanwordList)
+	backstage_admin.POST("/tg/banword/delete", backend_tg.TgbotBanwordDelete)
+
+	backstage_admin.GET("/tg/signad", backend_tg.Signad)
+	backstage_admin.GET("/tg/signad/add", backend_tg.SignadAdd)
+	backstage_admin.POST("/tg/signad/add", backend_tg.PostSignadAdd)
+	backstage_admin.POST("/tg/signad/trigger_status", backend_tg.TgbotSignadTriggerStatus)
+	backstage_admin.GET("/tg/signad/list", backend_tg.SignadList)
+	backstage_admin.POST("/tg/signad/delete", backend_tg.TgbotSignadDelete)
 
 }
 

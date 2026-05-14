@@ -13,12 +13,12 @@ import (
 	"tgbot/internal/model"
 )
 
-func Banword(c *gin.Context) {
+func Signad(c *gin.Context) {
 	data := common.CommonVer(c)
 	c.HTML(http.StatusOK, "backend/tg/banword/index.tmpl", data)
 }
 
-func BanwordAdd(c *gin.Context) {
+func SignadAdd(c *gin.Context) {
 	id := c.Query("id")
 	idint, _ := strconv.ParseInt(id, 10, 64)
 
@@ -32,7 +32,7 @@ func BanwordAdd(c *gin.Context) {
 	c.HTML(http.StatusOK, "backend/tg/banword/add.tmpl", data)
 }
 
-func PostBanwordAdd(c *gin.Context) {
+func PostSignadAdd(c *gin.Context) {
 	var field form.TgbotBanwordAdd
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
@@ -66,7 +66,7 @@ func PostBanwordAdd(c *gin.Context) {
 	common.SuccessResp(c)
 }
 
-func TgbotBanwordList(c *gin.Context) {
+func SignadList(c *gin.Context) {
 	var field form.TgbotList
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
@@ -81,7 +81,7 @@ func TgbotBanwordList(c *gin.Context) {
 	common.SuccessLayuiResp(c, count, "ok", result)
 }
 
-func TgbotBanwordTriggerStatus(c *gin.Context) {
+func TgbotSignadTriggerStatus(c *gin.Context) {
 	var field form.ID
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
@@ -96,7 +96,7 @@ func TgbotBanwordTriggerStatus(c *gin.Context) {
 	common.SuccessResp(c)
 }
 
-func TgbotBanwordDelete(c *gin.Context) {
+func TgbotSignadDelete(c *gin.Context) {
 	var field form.ID
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)

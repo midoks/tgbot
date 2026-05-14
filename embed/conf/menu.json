@@ -32,6 +32,17 @@
                 ]
             },
             {
+                "code": "tg_signad",
+                "name": "标记广告用户",
+                "path": "/tg/signad",
+                "subapi":[
+                    {
+                        "code":"tg_signad",
+                        "path": "/tg/signad"
+                    }
+                ]
+            },
+            {
                 "code": "tg_log",
                 "name": "机器人日志",
                 "path": "/tg/log",
