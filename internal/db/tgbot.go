@@ -123,7 +123,7 @@ func TgbotTriggerListenEnable(id int64) error {
 
 func GetTgbotAll() ([]model.Tgbot, error) {
 	var list []model.Tgbot
-	if err := db.Where("is_deleted=?", 0).Where("listen_enable=?", 1).Where("status=?", 0).Find(&list).Error; err != nil {
+	if err := db.Where("is_deleted=?", 0).Where("listen_enable=?", 1).Where("status=?", 1).Find(&list).Error; err != nil {
 		return nil, errors.Wrapf(err, "failed get list data")
 	}
 	return list, nil

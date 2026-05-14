@@ -37,3 +37,4 @@ go.work.sum
 /deploy
 tgbot
 /logs
+.*.sh

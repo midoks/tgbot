@@ -57,7 +57,6 @@ func ReloadTelegramTask() {
 }
 
 func InitTelegramTask() {
-
 	fmt.Println("InitTelegramTask")
 	manager := tgtask.GetManager()
 
