@@ -86,7 +86,7 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		op = "1" // 标记为删除
 	}
 
-	// 记录消息到日志（完整字段）
+	// 记录消息到日志
 	go db.AddTgbotLog(
 		bot.Self.ID,
 		update.Message.Chat.ID,
