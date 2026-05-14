@@ -23,7 +23,6 @@ import (
 	backend "tgbot/internal/app/handles/backend"
 	backend_admin "tgbot/internal/app/handles/backend/admin"
 	backend_log "tgbot/internal/app/handles/backend/log"
-	backend_monitor "tgbot/internal/app/handles/backend/monitor"
 	backend_system "tgbot/internal/app/handles/backend/system"
 	backend_tg "tgbot/internal/app/handles/backend/tg"
 	"tgbot/internal/app/handles/home"
@@ -103,8 +102,8 @@ func initRuoteAdmin(r *gin.Engine) {
 
 	// 管理员
 	// backstage_admin.GET("", backend.HomePage)
-	backstage_admin.GET("", backend_monitor.Home)
-	backstage_admin.GET("/index", backend_monitor.Home)
+	backstage_admin.GET("", backend_admin.Home)
+	backstage_admin.GET("/index", backend_admin.Home)
 
 	backstage_admin.GET("/admin/index", backend_admin.Home)
 	backstage_admin.GET("/admin/add", backend_admin.Add)
@@ -143,26 +142,6 @@ func initRuoteAdmin(r *gin.Engine) {
 
 	backstage_admin.GET("/admin/recipients/tasks", backend_admin.RecipientsTasks)
 	backstage_admin.GET("/admin/recipients/logs", backend_admin.RecipientsLogs)
-
-	// 监控管理
-	backstage_admin.GET("/monitor", backend_monitor.Home)
-	backstage_admin.GET("/monitor/add", backend_monitor.Add)
-	backstage_admin.POST("/monitor/add", backend_monitor.PostAdd)
-	backstage_admin.GET("/monitor/list", backend_monitor.List)
-	backstage_admin.POST("/monitor/delete", backend_monitor.SoftDelete)
-	backstage_admin.POST("/monitor/trigger_status", backend_monitor.MonitorTriggerStatus)
-
-	backstage_admin.GET("/monitor/group", backend_monitor.MonitorGroups)
-	backstage_admin.GET("/monitor/group/add", backend_monitor.MonitorGroupsAdd)
-	backstage_admin.GET("/monitor/group/list", backend_monitor.MonitorGroupsList)
-	backstage_admin.POST("/monitor/group/add", backend_monitor.PostMonitorGroupsAdd)
-	backstage_admin.POST("/monitor/group/delete", backend_monitor.MonitorGroupsDelete)
-	backstage_admin.POST("/monitor/group/trigger_status", backend_monitor.MonitorGroupsTriggerStatus)
-	backstage_admin.POST("/monitor/group/sort", backend_monitor.MonitorGroupsSort)
-
-	backstage_admin.GET("/monitor/log", backend_monitor.MonitorLog)
-	backstage_admin.GET("/monitor/log/list", backend_monitor.MonitorLogList)
-	backstage_admin.POST("/monitor/log/delete", backend_monitor.MonitorLogDelete)
 
 	// 日志审计
 	backstage_admin.GET("/log", backend_log.Home)
@@ -212,6 +191,9 @@ func initRuoteAdmin(r *gin.Engine) {
 	backstage_admin.POST("/tg/add", backend_tg.PostAdd)
 	backstage_admin.GET("/tg/list", backend_tg.List)
 	backstage_admin.POST("/tg/delete", backend_tg.PostSoftDelete)
+	backstage_admin.GET("/tg/details", backend_tg.Details)
+	backstage_admin.GET("/tg/trigger_status", backend_tg.TgbotTriggerStatus)
+
 	backstage_admin.GET("/tg/log", backend_tg.Log)
 	backstage_admin.GET("/tg/log/list", backend_tg.LogList)
 	backstage_admin.POST("/tg/log/delete", backend_tg.LogDelete)
@@ -231,9 +213,6 @@ func initRuoteFrontend(r *gin.Engine) {
 		c.String(200, "pong")
 	})
 	r.Use(middleware.CheckInstalled()).GET("/", home.Index)
-	r.Use(middleware.CheckInstalled()).GET("/groups", home.Groups)
-	r.Use(middleware.CheckInstalled()).GET("/monitor", home.Monitor)
-	r.GET("/ws/status", home.WSHandler)
 }
 
 func initRuote(r *gin.Engine) {
@@ -262,9 +241,6 @@ func Run() {
 
 	// 初始化清理任务
 	op.InitCleanTask()
-
-	// 初始化接收人汇总任务
-	op.InitRecipientsSummaryTasks()
 
 	r := gin.New()
 

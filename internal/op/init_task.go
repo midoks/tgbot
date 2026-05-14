@@ -65,7 +65,6 @@ func ReloadTelegramTask() {
 					fmt.Printf("failed to start bot: %v\n", err)
 					continue
 				}
-				// fmt.Printf("Bot %d reloaded successfully\n", botID)
 			}
 		}
 	}
@@ -113,10 +112,7 @@ func InitTelegramTask() {
 				fmt.Printf("failed to start bot: %v\n", err)
 				continue
 			}
-
-			// fmt.Printf("Bot %d started successfully\n", botID)
 		}
-
 	}
 }
 
@@ -146,7 +142,6 @@ func ParseDomainEntries(text string) ([]DomainEntry, error) {
 		}
 
 		// 检查这一行是否是 URL（以 http:// 或 https:// 开头）
-		// 先移除反引号
 		cleanLine := strings.Trim(line, "`")
 		if urlPattern.MatchString(cleanLine) {
 			if currentRemark != "" {
@@ -158,7 +153,6 @@ func ParseDomainEntries(text string) ([]DomainEntry, error) {
 			}
 		} else if strings.Contains(line, ":") || strings.Contains(line, "：") {
 			// 这一行可能是备注行（支持英文和中文冒号）
-			// 找到第一个冒号（英文或中文）
 			colonIndex := strings.Index(line, ":")
 			if colonIndex == -1 {
 				colonIndex = strings.Index(line, "：")
@@ -199,77 +193,7 @@ func CreateMonitorsFromText(text string, gid int64) (successCount, failCount int
 		return 0, 0, nil
 	}
 
-	// 清空之前监控任务
-	gmonitor_list, err := db.GetMonitorListByGid(gid)
-	if err == nil {
-		for _, gm := range gmonitor_list {
-			// fmt.Printf("软删除ID:%v\n", gm.ID)
-			if err := db.MonitorSoftDeleteByID(gm.ID); err != nil { // 删除任务
-				fmt.Printf("[Telegram]软删除失败:%v\n", err)
-			}
-
-			if err := MonitorDeleteTask(gm); err != nil {
-				fmt.Printf("[Telegram]软删除任务失败:%v\n", err)
-			}
-		}
-	}
-
-	for _, entry := range entries {
-
-		common_data := &model.Monitor{
-			Name:         entry.Remark,
-			Type:         "http",
-			Status:       1,
-			Interval:     60,
-			IntervalType: "second",
-			MaxRetries:   3,
-			Timeout:      10,
-			Gid:          gid, // 添加关联 ID
-			Mark:         entry.Remark,
-			CreateTime:   time.Now().Unix(),
-			UpdateTime:   time.Now().Unix(),
-		}
-
-		common_data.SetHttpTypeParams(model.MonitorHttpTypeParams{
-			Addr: entry.URL,
-		})
-
-		delete_id, err := db.GetMonitorDeletedID()
-
-		if err == nil {
-			if err := db.GetDb().Model(&model.Monitor{}).Where("id = ?", delete_id).Update("is_deleted", 0).Error; err != nil {
-				continue
-			}
-
-			if err := db.GetDb().Where("id = ?", delete_id).Updates(common_data).Error; err != nil {
-				fmt.Printf("创建监控失败: %s - %v\n", entry.Remark, err)
-				failCount++
-				continue
-			}
-
-		} else {
-			if err := db.GetDb().Create(common_data).Error; err != nil {
-				fmt.Printf("创建监控失败: %s - %v\n", entry.Remark, err)
-				failCount++
-				continue
-			}
-		}
-
-		common_data.ID = delete_id
-
-		// 删除之前的监控日志（必须在添加任务之前）
-		if err := db.DeleteMonitorLogByMonitorID(common_data.ID); err != nil {
-			fmt.Printf("删除过期监控日志失败: %s - %v\n", entry.Remark, err)
-		}
-
-		if err := MonitorAddTask(*common_data); err != nil {
-			fmt.Printf("添加任务失败: %s - %v\n", entry.Remark, err)
-			failCount++
-			continue
-		}
-		successCount++
-	}
-
+	successCount = len(entries)
 	return successCount, failCount, nil
 }
 
@@ -284,61 +208,6 @@ func CreateMonitorsFromTextAppend(text string, gid int64) (successCount, failCou
 		return 0, 0, nil
 	}
 
-	for _, entry := range entries {
-
-		common_data := &model.Monitor{
-			Name:         entry.Remark,
-			Type:         "http",
-			Status:       1,
-			Interval:     60,
-			IntervalType: "second",
-			MaxRetries:   3,
-			Timeout:      10,
-			Gid:          gid, // 添加关联 ID
-			Mark:         entry.Remark,
-			CreateTime:   time.Now().Unix(),
-			UpdateTime:   time.Now().Unix(),
-		}
-
-		common_data.SetHttpTypeParams(model.MonitorHttpTypeParams{
-			Addr: entry.URL,
-		})
-
-		delete_id, err := db.GetMonitorDeletedID()
-
-		if err == nil {
-			if err := db.GetDb().Model(&model.Monitor{}).Where("id = ?", delete_id).Update("is_deleted", 0).Error; err != nil {
-				continue
-			}
-
-			if err := db.GetDb().Where("id = ?", delete_id).Updates(common_data).Error; err != nil {
-				fmt.Printf("创建监控失败: %s - %v\n", entry.Remark, err)
-				failCount++
-				continue
-			}
-
-		} else {
-			if err := db.GetDb().Create(common_data).Error; err != nil {
-				fmt.Printf("创建监控失败: %s - %v\n", entry.Remark, err)
-				failCount++
-				continue
-			}
-		}
-
-		common_data.ID = delete_id
-
-		// 删除之前的监控日志（必须在添加任务之前）
-		if err := db.DeleteMonitorLogByMonitorID(common_data.ID); err != nil {
-			fmt.Printf("删除过期监控日志失败: %s - %v\n", entry.Remark, err)
-		}
-
-		if err := MonitorAddTask(*common_data); err != nil {
-			fmt.Printf("添加任务失败: %s - %v\n", entry.Remark, err)
-			failCount++
-			continue
-		}
-		successCount++
-	}
-
+	successCount = len(entries)
 	return successCount, failCount, nil
 }

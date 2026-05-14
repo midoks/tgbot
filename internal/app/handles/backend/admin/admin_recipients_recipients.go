@@ -22,19 +22,7 @@ func RecipientsRecipientsDetails(c *gin.Context) {
 	data["id"] = id
 	data["Data"] = recipient_data
 
-	// 获取关联的集群列表
-	monitorRelatedList, _ := db.GetAdminRecipientsMonitorRelatedByRecipientID(idint)
-	var monitorList []map[string]interface{}
-	for _, related := range monitorRelatedList {
-		mgid, _ := db.GetMonitorByID(related.MonitorGid)
-		if mgid.ID > 0 {
-			monitorList = append(monitorList, map[string]interface{}{
-				"ID":   mgid.ID,
-				"Name": mgid.Name,
-			})
-		}
-	}
-	data["MonitorList"] = monitorList
+	data["MonitorList"] = []interface{}{}
 
 	c.HTML(http.StatusOK, "backend/admin/recipients/recipients_details.tmpl", data)
 }
@@ -52,8 +40,7 @@ func RecipientsRecipientsUpdate(c *gin.Context) {
 	data["MediaID"] = recipient_data.MediaID
 	data["GroupID"] = recipient_data.GroupID
 
-	monitorList, _, _ := db.GetMonitorGroupList(1, 100)
-	data["MonitorList"] = monitorList
+	data["MonitorList"] = []interface{}{}
 
 	admin_list, _, _ := db.GetAdminList(1, 100)
 	data["AdminList"] = admin_list

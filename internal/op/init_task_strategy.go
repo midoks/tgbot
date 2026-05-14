@@ -4,7 +4,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"tgbot/internal/db"
-	"tgbot/internal/notify"
 )
 
 // HandleStatusCommand 处理/status命令
@@ -16,35 +15,17 @@ func HandleStatusCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI) error {
 
 // HandleLastCommand 处理/last命令
 func HandleLastCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI, relateMonitorGroupID int64) error {
-	// 获取接收人信息
-	var message string
-	var err error
 	if relateMonitorGroupID > 0 {
-		// 先尝试通过监控分组ID获取接收人
-		recipients, err := db.GetAdminRecipientsByMonitorGid(relateMonitorGroupID)
-		if err == nil && len(recipients) > 0 {
-			// 使用第一个接收人生成汇总消息
-			message, err = notify.GenerateRecipientsSummaryMessage(recipients[0].ID)
-		} else {
-			// 如果没有关联的接收人，直接使用监控分组ID生成汇总消息
-			message, err = notify.GenerateMonitorGroupSummaryMessage(relateMonitorGroupID)
+		_, err := db.GetAdminRecipientsByMonitorGid(relateMonitorGroupID)
+		if err != nil {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "获取监控数据失败: "+err.Error())
+			_, err := bot.Send(msg)
+			return err
 		}
 	}
 
-	if err != nil {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "生成汇总消息失败: "+err.Error())
-		_, err := bot.Send(msg)
-		return err
-	}
-
-	if message == "" {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "暂无监控数据")
-		_, err := bot.Send(msg)
-		return err
-	}
-
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, message)
-	_, err = bot.Send(msg)
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "暂无监控数据")
+	_, err := bot.Send(msg)
 	return err
 }
 

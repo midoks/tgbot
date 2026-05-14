@@ -30,47 +30,6 @@
         ]
     },
     {
-        "code": "monitor",
-        "name": "监控管理",
-        "icon": "layui-icon-engine",
-        "path": "",
-        "children": [
-            {
-                "code": "monitor_list",
-                "name": "监控列表",
-                "path": "/monitor",
-                "subapi":[
-                    {
-                        "code":"monitor_list",
-                        "path": "/clusters/create"
-                    }
-                ]
-            },
-            {
-                "code": "monitor_group",
-                "name": "监控分组",
-                "path": "/monitor/group",
-                "subapi":[
-                    {
-                        "code":"monitor_group",
-                        "path": "/clusters/create"
-                    }
-                ]
-            },
-            {
-                "code": "monitor_log",
-                "name": "监控日志",
-                "path": "/monitor/log",
-                "subapi":[
-                    {
-                        "code":"monitor_log",
-                        "path": "/clusters/create"
-                    }
-                ]
-            }
-        ]
-    },
-    {
         "code": "admin",
         "name": "管理员",
         "icon": "layui-icon-user",

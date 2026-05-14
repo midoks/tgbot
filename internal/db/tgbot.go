@@ -88,6 +88,30 @@ func GetTgbotDeletedID() (int64, error) {
 	return d.ID, nil
 }
 
+func TgbotTriggerStatus(id int64) error {
+	var data model.Tgbot
+	if err := db.First(&data, id).Error; err != nil {
+		return errors.Wrapf(err, "failed get tgbot")
+	}
+
+	var status bool
+	if data.Status {
+		status = false
+	} else {
+		status = true
+	}
+
+	data.UpdateTime = time.Now().Unix()
+	data.Status = status
+
+	if err := db.Model(&model.Admin{}).
+		Where("id = ?", id).
+		Updates(&data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func TgbotUpdate(id int64, updates map[string]interface{}) error {
 	return db.Model(&model.Tgbot{}).Where("id = ?", id).Updates(updates).Error
 }

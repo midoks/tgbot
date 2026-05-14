@@ -62,6 +62,7 @@ func PostAdd(c *gin.Context) {
 		ProxyScheme:  field.ProxyScheme,
 		ProxyValue:   field.ProxyValue,
 		ListenEnable: field.ListenEnable,
+		Status:       field.Status,
 		CreateTime:   time.Now().Unix(),
 	}
 
@@ -118,4 +119,30 @@ func PostSoftDelete(c *gin.Context) {
 	}
 
 	common.SuccessResp(c)
+}
+
+func TgbotTriggerStatus(c *gin.Context) {
+	var field form.ID
+	if err := c.ShouldBind(&field); err != nil {
+		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	err := db.TgbotTriggerStatus(field.ID)
+	if err == nil {
+		common.SuccessResp(c)
+		return
+	}
+	common.ErrorResp(c, err, -1)
+}
+
+func Details(c *gin.Context) {
+	id := c.Query("id")
+	idint, _ := strconv.ParseInt(id, 10, 64)
+	tgbot_data, _ := db.GetTgbotByID(idint)
+
+	data := common.CommonVer(c)
+	data["id"] = id
+	data["Data"] = tgbot_data
+	c.HTML(http.StatusOK, "backend/tg/details.tmpl", data)
 }

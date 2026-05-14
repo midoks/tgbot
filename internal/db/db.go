@@ -41,9 +41,6 @@ func InitDb() {
 
 	database := conf.Database
 	prefix := database.TablePrefix
-	if prefix == "" {
-		prefix = "tg_"
-	}
 
 	gormConfig := &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
@@ -177,9 +174,6 @@ func Init(d *gorm.DB) {
 		new(model.AdminMediaInstance),
 		new(model.AdminMediaGroup),
 		new(model.AdminRecipientsTasks),
-		new(model.Monitor),
-		new(model.MonitorGroup),
-		new(model.MonitorLog),
 		new(model.DbNode),
 		new(model.Tgbot),
 		new(model.Log),
@@ -187,11 +181,6 @@ func Init(d *gorm.DB) {
 	)
 	if err != nil {
 		log.Fatalf("failed migrate database: %s", err.Error())
-	}
-
-	// 创建监控日志分表
-	if err := CreateMonitorLogTable(); err != nil {
-		log.Fatalf("failed create monitor log tables: %s", err.Error())
 	}
 }
 

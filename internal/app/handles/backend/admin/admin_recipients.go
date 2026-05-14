@@ -13,7 +13,6 @@ import (
 	"tgbot/internal/app/form"
 	"tgbot/internal/db"
 	"tgbot/internal/model"
-	"tgbot/internal/op"
 )
 
 func GetRecipientsSubMenu() []form.SubMenu {
@@ -57,8 +56,7 @@ func Recipients(c *gin.Context) {
 func RecipientsAdd(c *gin.Context) {
 	data := common.CommonVer(c)
 
-	monitorList, _, _ := db.GetMonitorGroupList(1, 100)
-	data["MonitorList"] = monitorList
+	data["MonitorList"] = []interface{}{}
 
 	admin_list, _, _ := db.GetAdminList(1, 100)
 	data["AdminList"] = admin_list
@@ -168,9 +166,6 @@ func PostRecipientsAdd(c *gin.Context) {
 		return
 	}
 
-	// 重新加载接收人汇总任务
-	go op.ReloadRecipientsSummaryTasks()
-
 	common.SuccessResp(c)
 }
 
@@ -193,8 +188,6 @@ func RecipientsDelete(c *gin.Context) {
 
 	err := db.AdminRecipientsDeleteByID(nil, field.ID)
 	if err == nil {
-		// 重新加载接收人汇总任务
-		go op.ReloadRecipientsSummaryTasks()
 		common.SuccessResp(c)
 		return
 	}
