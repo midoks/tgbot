@@ -157,7 +157,7 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	// 如果消息需要删除，3秒后删除消息
 	if op == 1 {
 		go func() {
-			time.Sleep(3 * time.Second)
+			time.Sleep(1 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
 			_, _ = bot.Send(deleteMsg)
 			fmt.Printf("Deleted message %d from chat %d (matched: %q)\n",
