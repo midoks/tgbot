@@ -7,23 +7,16 @@ import (
 	"time"
 
 	"tgbot/internal/db"
-	"tgbot/internal/model"
 	"tgbot/internal/tgtask"
 )
 
 func ReloadTelegramTask() {
 	manager := tgtask.GetManager()
 	// 获取当前的 Telegram 配置
-	telegram_list, err := db.GetAdminRecipientsInstancesByTelegram()
+	telegram_list, err := db.GetTgbotAll()
 	if err != nil {
-		fmt.Printf("failed to get recipient data: %v\n", err)
+		fmt.Printf("failed to get tgbot data: %v\n", err)
 		return
-	}
-
-	// 创建当前配置的映射，用于快速查找
-	currentConfigs := make(map[int64]*model.AdminMediaInstance)
-	for i := range telegram_list {
-		currentConfigs[telegram_list[i].ID] = &telegram_list[i]
 	}
 
 	// 移除所有现有的机器人
@@ -37,73 +30,20 @@ func ReloadTelegramTask() {
 	// 重新添加和启动机器人
 	if len(telegram_list) > 0 {
 		for _, data := range telegram_list {
-			tp, err := data.GetTelegramParams()
-			if err != nil {
-				fmt.Printf("failed to get telegram params: %v\n", err)
+			if !data.ListenEnable {
 				continue
 			}
 
-			if tp.TelegramListenEnable {
-				botID := data.ID
-
-				var handler tgtask.MessageHandler
-				switch tp.TelegramListenStrategy {
-				case "default":
-					handler = TelegramMessageHandlertrategyDefault(tp.RelateMonitorGroupID)
-				case "append":
-					handler = TelegramMessageHandlertrategyAppend(tp.RelateMonitorGroupID)
-				default:
-					handler = TelegramMessageHandlerStrategyNone(tp.RelateMonitorGroupID)
-				}
-
-				if err := manager.AddBot(botID, tp.Token, data.GetTelegramProxy(), 0, handler); err != nil {
-					fmt.Printf("failed to add bot: %v\n", err)
-					continue
-				}
-
-				if err := manager.StartBot(botID); err != nil {
-					fmt.Printf("failed to start bot: %v\n", err)
-					continue
-				}
-			}
-		}
-	}
-}
-
-func InitTelegramTask() {
-	manager := tgtask.GetManager()
-
-	telegram_list, err := db.GetAdminRecipientsInstancesByTelegram()
-	if err != nil {
-		fmt.Printf("failed to get recipient data: %v\n", err)
-		return
-	}
-
-	if len(telegram_list) == 0 {
-		return
-	}
-
-	for _, data := range telegram_list {
-		tp, err := data.GetTelegramParams()
-		if err != nil {
-			fmt.Printf("failed to get telegram params: %v\n", err)
-			continue
-		}
-
-		if tp.TelegramListenEnable {
 			botID := data.ID
+			proxy := ""
+			if data.ProxyScheme != "" && data.ProxyValue != "" {
+				proxy = data.ProxyScheme + "://" + data.ProxyValue
+			}
 
 			var handler tgtask.MessageHandler
-			switch tp.TelegramListenStrategy {
-			case "default":
-				handler = TelegramMessageHandlertrategyDefault(tp.RelateMonitorGroupID)
-			case "append":
-				handler = TelegramMessageHandlertrategyAppend(tp.RelateMonitorGroupID)
-			default:
-				handler = TelegramMessageHandlerStrategyNone(tp.RelateMonitorGroupID)
-			}
+			handler = TelegramMessageHandlerStrategyNone(0)
 
-			if err := manager.AddBot(botID, tp.Token, data.GetTelegramProxy(), 0, handler); err != nil {
+			if err := manager.AddBot(botID, data.Token, proxy, 0, handler); err != nil {
 				fmt.Printf("failed to add bot: %v\n", err)
 				continue
 			}
@@ -112,6 +52,45 @@ func InitTelegramTask() {
 				fmt.Printf("failed to start bot: %v\n", err)
 				continue
 			}
+		}
+	}
+}
+
+func InitTelegramTask() {
+	manager := tgtask.GetManager()
+
+	telegram_list, err := db.GetTgbotAll()
+	if err != nil {
+		fmt.Printf("failed to get tgbot data: %v\n", err)
+		return
+	}
+
+	if len(telegram_list) == 0 {
+		return
+	}
+
+	for _, data := range telegram_list {
+		if !data.ListenEnable {
+			continue
+		}
+
+		botID := data.ID
+		proxy := ""
+		if data.ProxyScheme != "" && data.ProxyValue != "" {
+			proxy = data.ProxyScheme + "://" + data.ProxyValue
+		}
+
+		var handler tgtask.MessageHandler
+		handler = TelegramMessageHandlerStrategyNone(0)
+
+		if err := manager.AddBot(botID, data.Token, proxy, 0, handler); err != nil {
+			fmt.Printf("failed to add bot: %v\n", err)
+			continue
+		}
+
+		if err := manager.StartBot(botID); err != nil {
+			fmt.Printf("failed to start bot: %v\n", err)
+			continue
 		}
 	}
 }

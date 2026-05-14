@@ -73,53 +73,6 @@
                         "path": "/admin/update"
                     }
                 ]
-            },
-            {
-                "code": "admin_recipients",
-                "name": "通知媒介",
-                "path": "/admin/recipients",
-                "subapi":[
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/instances"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/groups"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/instances/details"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/instances/test"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/instances/update"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/recipients/details"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/recipients/update"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/recipients/test"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/logs"
-                    },
-                    {
-                        "code":"admin_recipients",
-                        "path": "/admin/recipients/tasks"
-                    }
-                ]
             }
         ]
     },
