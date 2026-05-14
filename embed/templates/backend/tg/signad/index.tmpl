@@ -8,7 +8,7 @@
                 <div class="layui-form toolbar" style="margin-top: 10px;margin-bottom: 10px;">
                 <form class="layui-form" action="" id="tgbot_banword_form" onclick="return false;">
 
-                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/signad/add',600,300)">
+                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/signad/add',600,400)">
                         <i class="layui-icon layui-icon-add-circle"></i> 添加
                     </button>
 
@@ -55,9 +55,10 @@ function renderTable(){
         title: '消息日志',
         cols: [[
             {field:'id', title:'ID'},
-            {field:'word', title:'关键词'},
-            {field:'status', title:'状态', toolbar:"#statusTpl"},
-             {field:'update_time', title:'更新时间', width:185, templet: function(d){return layui.util.toDateString(d.update_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
+            {field:'user_id', title:'用户ID'},
+            {field:'from_user_name', title:'用户名称'},
+            {field:'status', title:'状态', toolbar:"#statusTpl",width:80},
+            {field:'update_time', title:'更新时间', width:185, templet: function(d){return layui.util.toDateString(d.update_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
             {field:'create_time', title:'创建时间', width:185, templet: function(d){return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
             {title:'操作', toolbar: '#cmdTpl', width:130, fixed: 'right'}
         ]],
@@ -106,7 +107,7 @@ function opStatus(obj){
 </script>
 
 <script type="text/html" id="cmdTpl">
-<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/signad/add?id={{d.id}}',600,300)">修改</a>
+<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/signad/add?id={{d.id}}',600,400)">修改</a>
 <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/signad/delete','{{d.id}}','{{d.bot_id}}')">删除</a>
 </script>
 

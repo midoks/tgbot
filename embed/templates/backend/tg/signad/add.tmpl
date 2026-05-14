@@ -136,8 +136,7 @@ form.on("submit(submit_tg)", function(data){
         field['status'] = 0;
     }
 
-
-    $.post("/{[$.admin_path]}/tg/banword/add", field, function(res) {
+    $.post("/{[$.admin_path]}/tg/signad/add", field, function(res) {
         showMsg(res.msg, function(){
             layer.close(index);
             if(res.code > -1){

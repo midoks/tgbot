@@ -33,23 +33,24 @@ func SignadAdd(c *gin.Context) {
 }
 
 func PostSignadAdd(c *gin.Context) {
-	var field form.TgbotBanwordAdd
+	var field form.TgbotSignAd
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
 
-	common_data := &model.TgbotBanWord{
-		Word:       field.Word,
-		Status:     field.Status,
-		CreateTime: time.Now().Unix(),
+	common_data := &model.TgbotSignAd{
+		UserID:       field.UserID,
+		FromUserName: field.FromUserName,
+		Status:       field.Status,
+		CreateTime:   time.Now().Unix(),
 	}
 
 	if field.ID > 0 {
 		_, err := db.GetTgbotBanwordByID(field.ID)
 		if err == nil {
 			common_data.UpdateTime = time.Now().Unix()
-			if err := db.GetDb().Model(&model.TgbotBanWord{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
+			if err := db.GetDb().Model(&model.TgbotSignAd{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
 				common.ErrorResp(c, err, -1)
 				return
 			}
