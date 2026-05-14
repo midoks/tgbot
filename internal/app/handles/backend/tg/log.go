@@ -43,9 +43,9 @@ func LogDelete(c *gin.Context) {
 	}
 
 	err := db.TgbotDelete(field.ID)
-	if err == nil {
-		common.SuccessResp(c)
+	if err != nil {
+		common.ErrorResp(c, err, -1)
 		return
 	}
-	common.ErrorResp(c, err, -1)
+	common.SuccessResp(c)
 }
