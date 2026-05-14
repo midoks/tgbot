@@ -98,7 +98,7 @@ func PostAdd(c *gin.Context) {
 		}
 	}
 
-	op.ReloadTelegramTask()
+	go op.ReloadTelegramTask()
 	common.SuccessResp(c)
 }
 
@@ -121,6 +121,7 @@ func PostSoftDelete(c *gin.Context) {
 		return
 	}
 
+	go op.ReloadTelegramTask()
 	common.SuccessResp(c)
 }
 
@@ -137,7 +138,7 @@ func TgbotTriggerStatus(c *gin.Context) {
 		return
 	}
 
-	op.ReloadTelegramTask()
+	go op.ReloadTelegramTask()
 	common.SuccessResp(c)
 
 }
@@ -154,7 +155,7 @@ func TgbotTriggerListenEnable(c *gin.Context) {
 		common.ErrorResp(c, err, -1)
 		return
 	}
-	op.ReloadTelegramTask()
+	go op.ReloadTelegramTask()
 	common.SuccessResp(c)
 }
 
