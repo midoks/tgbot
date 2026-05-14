@@ -103,6 +103,7 @@ table.on('toolbar', function(obj){
 table.on('tool(list)', function(obj){
     switch(obj.event){
         case 'status':opStatus(obj);break;
+        case 'listen_enable':opListenEnable(obj);break;
     };
 });
 
@@ -115,6 +116,18 @@ function opStatus(obj){
         },{icon:data.code>-1?1:2});
     },'json');
 }
+
+function opListenEnable(obj){
+    $.post('/{[.admin_path]}/tg/trigger_listen_enable', {"id":obj.data.id}, function(data) {
+        showMsg(data.msg,function(){
+            if (data.code>-1){
+                location.reload();
+            }
+        },{icon:data.code>-1?1:2});
+    },'json');
+}
+
+
 
 
 ///
