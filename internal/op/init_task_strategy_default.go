@@ -17,8 +17,6 @@ func TelegramMessageHandlertrategyDefault(relateMonitorGroupID int64) tgtask.Mes
 		switch update.Message.Text {
 		case "/status":
 			return HandleStatusCommand(update, bot)
-		case "/last":
-			return HandleLastCommand(update, bot, relateMonitorGroupID)
 		case "/start":
 			fallthrough
 		case "/?":

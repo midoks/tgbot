@@ -12,28 +12,11 @@ func HandleStatusCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI) error {
 	return err
 }
 
-// HandleLastCommand 处理/last命令
-func HandleLastCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI, relateMonitorGroupID int64) error {
-	// if relateMonitorGroupID > 0 {
-	// 	_, err := db.GetAdminRecipientsByMonitorGid(relateMonitorGroupID)
-	// 	if err != nil {
-	// 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "获取监控数据失败: "+err.Error())
-	// 		_, err := bot.Send(msg)
-	// 		return err
-	// 	}
-	// }
-
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "暂无监控数据")
-	_, err := bot.Send(msg)
-	return err
-}
-
 // HandleHelpCommand 处理/help命令
 func HandleHelpCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI, includeImportFormat bool) error {
 	helpText := `可用命令:
 /start - 开始使用
 /status - 检查运行状态
-/last - 获取监控汇总信息
 /help - 显示此帮助信息`
 
 	if includeImportFormat {
