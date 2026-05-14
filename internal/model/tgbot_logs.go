@@ -1,5 +1,11 @@
 package model
 
+import (
+	"fmt"
+
+	"tgbot/internal/conf"
+)
+
 type TgbotLogs struct {
 	ID           int64  `json:"id" gorm:"primaryKey"` // unique key
 	BotID        int64  `json:"bot_id"`               // bot id
@@ -17,5 +23,6 @@ type TgbotLogs struct {
 
 // TableName 返回分表名称（不带后缀，由分表逻辑处理）
 func (TgbotLogs) TableName() string {
-	return "tgbot_logs"
+	prefix := conf.Database.TablePrefix
+	return fmt.Sprintf("%stgbot_logs", prefix)
 }

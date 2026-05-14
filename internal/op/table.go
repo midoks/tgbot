@@ -20,6 +20,7 @@ func init() {
 	}
 
 	tableTypes = map[string]tableTypeInfo{
+		tablePrefix + "tgbot_logs_":   {Type: "聊天日志", Actions: []string{"delete", "clean"}},
 		tablePrefix + "monitor_logs_": {Type: "监控日志", Actions: []string{"delete", "clean"}},
 		tablePrefix + "logs":          {Type: "系统日志", Actions: []string{"clean"}},
 	}

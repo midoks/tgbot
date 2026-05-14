@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"tgbot/internal/app/form"
+	"tgbot/internal/conf"
 	"tgbot/internal/model"
 )
 
 // getTgbotLogTableName 根据日期获取分表名称
 func getTgbotLogTableName(t time.Time) string {
-	return fmt.Sprintf("tgbot_logs_%s", t.Format("20060102"))
+	prefix := conf.Database.TablePrefix
+	return fmt.Sprintf("%stgbot_logs_%s", prefix, t.Format("20060102"))
 }
 
 // getTgbotLogTableNamesInRange 获取日期范围内所有分表名称
