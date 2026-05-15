@@ -12,6 +12,7 @@ type Tgbot struct {
 	IsDeleted     int    `json:"is_deleted" gorm:"default:0"`           // is_deleted
 	MenuFreq      int64  `json:"menu_freq"`                             // menu_freq
 	MenuRelatedID int64  `json:"menu_related_id"`                       // menu_related_id
+	MenuSendID    int64  `json:"menu_send_id"`                          // menu_send_id
 	UpdateTime    int64  `json:"update_time"`                           // update_time
 	CreateTime    int64  `json:"create_time"`                           // create_time
 }

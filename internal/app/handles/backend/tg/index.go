@@ -68,6 +68,7 @@ func PostAdd(c *gin.Context) {
 		ListenEnable:  field.ListenEnable,
 		MenuFreq:      field.MenuFreq,
 		MenuRelatedID: field.MenuRelatedID,
+		MenuSendID:    field.MenuSendID,
 		Status:        field.Status,
 		CreateTime:    time.Now().Unix(),
 	}

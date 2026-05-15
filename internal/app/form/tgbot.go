@@ -13,6 +13,7 @@ type TgbotAdd struct {
 
 	MenuFreq      int64 `form:"menu_freq"`
 	MenuRelatedID int64 `form:"menu_related_id"`
+	MenuSendID    int64 `form:"menu_send_id"`
 
 	Status bool   `form:"status"` // status
 	Mark   string `form:"mark"`   // mark

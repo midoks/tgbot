@@ -289,3 +289,10 @@ func (m *Manager) RemoveAllBots() error {
 func GetManager() *Manager {
 	return botManager
 }
+
+// GetBot 获取指定 ID 的 bot
+func (m *Manager) GetBot(id int64) *Bot {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.bots[id]
+}
