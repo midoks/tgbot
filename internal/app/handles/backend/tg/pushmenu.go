@@ -25,9 +25,9 @@ func PushmenuAdd(c *gin.Context) {
 	data := common.CommonVer(c)
 	data["id"] = id
 
-	banword_data, err := db.GetTgbotPushMenuByID(idint)
+	pushmenu_data, err := db.GetTgbotPushMenuByID(idint)
 	if err == nil {
-		data["Data"] = banword_data
+		data["Data"] = pushmenu_data
 	}
 	c.HTML(http.StatusOK, "backend/tg/pushmenu/add.tmpl", data)
 }
