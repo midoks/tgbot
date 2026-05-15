@@ -85,8 +85,7 @@ func (t *MenuPushTask) run() {
 	ticker := time.NewTicker(time.Duration(t.freq) * time.Second)
 	defer ticker.Stop()
 
-	fmt.Printf("[MenuPush] Bot %d: Started periodic push, freq=%d seconds\n", t.botID, t.freq)
-
+	// fmt.Printf("[MenuPush] Bot %d: Started periodic push, freq=%d seconds\n", t.botID, t.freq)
 	for {
 		select {
 		case <-ticker.C:
@@ -100,7 +99,7 @@ func (t *MenuPushTask) run() {
 
 // pushMenu 推送菜单
 func (t *MenuPushTask) pushMenu() {
-	fmt.Printf("[MenuPush] Bot %d, Chat %d: Starting pushMenu\n", t.botID, t.chatID)
+	// fmt.Printf("[MenuPush] Bot %d, Chat %d: Starting pushMenu\n", t.botID, t.chatID)
 
 	// 检查 notify 实例
 	if t.notify == nil {
@@ -151,8 +150,7 @@ func (t *MenuPushTask) pushMenu() {
 		inlineKeyboard = append(inlineKeyboard, keyboardRow)
 	}
 
-	fmt.Printf("[MenuPush] Bot %d, Chat %d: Sending menu...\n", t.botID, t.chatID)
-
+	// fmt.Printf("[MenuPush] Bot %d, Chat %d: Sending menu...\n", t.botID, t.chatID)
 	// 使用 notify 包的 SendWithKeyboardReturningID 方法发送并获取消息 ID
 	messageID, err := t.notify.SendWithKeyboardReturningID(context.Background(), menuData.Message, inlineKeyboard)
 	if err == nil {
@@ -202,7 +200,7 @@ func (t *MenuPushTask) IsRunning() bool {
 
 // StopAllMenuPushTasks 停止所有菜单推送任务
 func StopAllMenuPushTasks() {
-	fmt.Println("[MenuPush] Stopping all menu push tasks")
+	// fmt.Println("[MenuPush] Stopping all menu push tasks")
 	menuPushTasks.Range(func(key, value interface{}) bool {
 		if task, ok := value.(*MenuPushTask); ok {
 			task.Stop()
@@ -235,12 +233,12 @@ func RestartMenuPushTask(botData model.Tgbot, menu model.TgbotPushMenu, freq int
 
 // InitMenuPushTasks 初始化所有菜单推送任务
 func InitMenuPushTasks() {
-	fmt.Println("[MenuPush] Initializing menu push tasks")
+	// fmt.Println("[MenuPush] Initializing menu push tasks")
 
 	// 获取所有 bot
 	botList, err := db.GetTgbotAll()
 	if err != nil {
-		fmt.Printf("[MenuPush] Failed to get bot list: %v\n", err)
+		// fmt.Printf("[MenuPush] Failed to get bot list: %v\n", err)
 		return
 	}
 
@@ -250,12 +248,12 @@ func InitMenuPushTasks() {
 			// 获取关联的菜单
 			menu, err := db.GetTgbotPushMenuByID(botData.MenuRelatedID)
 			if err != nil {
-				fmt.Printf("[MenuPush] Failed to get menu %d for bot %d: %v\n", botData.MenuRelatedID, botData.ID, err)
+				// fmt.Printf("[MenuPush] Failed to get menu %d for bot %d: %v\n", botData.MenuRelatedID, botData.ID, err)
 				continue
 			}
 
 			if !menu.Status {
-				fmt.Printf("[MenuPush] Menu %d is not active, skipping bot %d\n", menu.ID, botData.ID)
+				// fmt.Printf("[MenuPush] Menu %d is not active, skipping bot %d\n", menu.ID, botData.ID)
 				continue
 			}
 
@@ -270,7 +268,7 @@ func InitMenuPushTasks() {
 
 // ReloadMenuPushTasks 重新加载所有菜单推送任务
 func ReloadMenuPushTasks() {
-	fmt.Println("[MenuPush] Reloading menu push tasks")
+	// fmt.Println("[MenuPush] Reloading menu push tasks")
 
 	// 先停止所有现有任务
 	StopAllMenuPushTasks()
@@ -327,7 +325,7 @@ func ReloadTelegramTask() {
 }
 
 func InitTelegramTask() {
-	fmt.Println("InitTelegramTask")
+	// fmt.Println("InitTelegramTask")
 
 	// 获取所有 bot 配置
 	telegram_list, err := db.GetTgbotAll()
