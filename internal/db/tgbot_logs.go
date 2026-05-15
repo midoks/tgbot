@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"tgbot/internal/app/entity"
 	"tgbot/internal/app/form"
 	"tgbot/internal/conf"
 	"tgbot/internal/model"
@@ -251,14 +252,13 @@ func GetTgbotLogsByBotIDAndDateRange(botID int64, start, end time.Time) ([]model
 	return allLogs, nil
 }
 
-// GetTgbotLogListByArgs 根据条件查询日志列表（支持分页）
-func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, error) {
+// GetTgbotLogListByArgs 根据条件查询日志列表（支持分页，带广告标记）
+func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]entity.TgbotLogWithSignad, int64, error) {
 	// 解析日期范围
 	var start, end time.Time
 	var err error
 
 	if field.Times != "" {
-		// 假设格式为 "2026-05-01 - 2026-05-14" 或带时间的格式
 		parts := strings.Split(field.Times, " - ")
 		if len(parts) == 2 {
 			start, err = parseDateTime(strings.TrimSpace(parts[0]))
@@ -269,16 +269,13 @@ func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, e
 			if err != nil {
 				return nil, 0, err
 			}
-			// 结束日期设为当天结束时间
 			end = end.AddDate(0, 0, 1).Add(-time.Nanosecond)
 		}
 	} else {
-		// 默认查询最近7天
 		end = time.Now()
 		start = end.AddDate(0, 0, -7)
 	}
 
-	// 获取日期范围内的所有表
 	tables := getTgbotLogTableNamesInRange(start, end)
 
 	var allLogs []model.TgbotLogs
@@ -295,7 +292,6 @@ func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, e
 		var logs []model.TgbotLogs
 		dbQuery := db.Table(tableName)
 
-		// 根据查询类型和关键词过滤
 		if field.Type != "" && field.Key != "" {
 			switch field.Type {
 			case "bot_id":
@@ -315,18 +311,15 @@ func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, e
 			case "content":
 				dbQuery = dbQuery.Where("content LIKE ?", "%"+field.Key+"%")
 			default:
-				// 模糊搜索所有文本字段
 				dbQuery = dbQuery.Where("chat_name LIKE ? OR from_user_name LIKE ? OR content LIKE ?",
 					"%"+field.Key+"%", "%"+field.Key+"%", "%"+field.Key+"%")
 			}
 		}
 
-		// 按BotID过滤
 		if field.BotID > 0 {
 			dbQuery = dbQuery.Where("bot_id = ?", field.BotID)
 		}
 
-		// 按时间范围过滤
 		dbQuery = dbQuery.Where("create_time >= ? AND create_time <= ?", start.Unix(), end.Unix())
 
 		err = dbQuery.Find(&logs).Error
@@ -345,22 +338,38 @@ func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, e
 		}
 	}
 
-	// 计算总数
+	// 批量查询广告用户ID
+	var signadUserIDs []int64
+	db.Model(&model.TgbotSignAd{}).Select("user_id").Find(&signadUserIDs)
+
+	signadMap := make(map[int64]bool)
+	for _, uid := range signadUserIDs {
+		signadMap[uid] = true
+	}
+
+	// 组装结果
 	total := int64(len(allLogs))
+	result := make([]entity.TgbotLogWithSignad, len(allLogs))
+	for i, log := range allLogs {
+		result[i] = entity.TgbotLogWithSignad{
+			TgbotLogs: log,
+			IsSignad:  signadMap[log.UserID],
+		}
+	}
 
 	// 分页处理
 	if field.Page > 0 && field.Limit > 0 {
 		offset := (field.Page - 1) * field.Limit
-		if offset < len(allLogs) {
+		if offset < len(result) {
 			endIdx := offset + field.Limit
-			if endIdx > len(allLogs) {
-				endIdx = len(allLogs)
+			if endIdx > len(result) {
+				endIdx = len(result)
 			}
-			allLogs = allLogs[offset:endIdx]
+			result = result[offset:endIdx]
 		} else {
-			allLogs = []model.TgbotLogs{}
+			result = []entity.TgbotLogWithSignad{}
 		}
 	}
 
-	return allLogs, total, nil
+	return result, total, nil
 }

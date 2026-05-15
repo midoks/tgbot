@@ -26,25 +26,10 @@ func LogList(c *gin.Context) {
 		return
 	}
 
-	logs, count, err := db.GetTgbotLogListByArgs(field)
+	result, count, err := db.GetTgbotLogListByArgs(field)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return
-	}
-
-	type LogWithSignad struct {
-		model.TgbotLogs
-		IsSignad bool `json:"is_signad"`
-	}
-
-	result := make([]LogWithSignad, len(logs))
-	for i, log := range logs {
-		_, err := db.GetTgbotSignadByUserID(log.UserID)
-		isSignad := err == nil
-		result[i] = LogWithSignad{
-			TgbotLogs: log,
-			IsSignad:  isSignad,
-		}
 	}
 
 	common.SuccessLayuiResp(c, count, "ok", result)
