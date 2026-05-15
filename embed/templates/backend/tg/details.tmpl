@@ -40,6 +40,37 @@
                             </div>
                         </div>
 
+                        <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
+                            <div class="ccc_hover">
+                                <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;">监听</div>
+                                <div style="font-size: 12px;">
+                                    {[if .Data]}
+                                        {[if .Data.ListenEnable]}<span style="color:#16b777;">已启用</span>
+                                        {[else]}<span style="color:#e2e2e2;">已停用</span>
+                                        {[end]}
+                                    {[end]}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
+                            <div class="ccc_hover">
+                                <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;">名称</div>
+                                <div style="font-size: 12px;">
+                                    {[if .Data]}{[.Data.Name]}{[end]}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="layui-col-xs12 layui-col-sm4 layui-col-md3">
+                            <div class="ccc_hover">
+                                <div style="color: rgb(100, 116, 139); font-size: 14px; margin-bottom: 6px;">Token</div>
+                                <div style="font-size: 12px;">
+                                    {[if .Data]}{[.Data.Token]}{[end]}
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 

@@ -167,6 +167,72 @@ func AddTgbotLog(botID, chatID, userID int64, chatName, chatType, fromUserName, 
 	return db.Table(tableName).Create(&log).Error
 }
 
+// GetTgbotLogStats 获取日志统计信息
+func GetTgbotLogStats() (todayCount, todayDeleteCount, last7DayCount int64, err error) {
+	now := time.Now()
+
+	// 今天的开始和结束时间
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+	todayEnd := todayStart.AddDate(0, 0, 1).Add(-time.Nanosecond)
+
+	// 7天前的开始时间
+	last7DayStart := now.AddDate(0, 0, -7)
+
+	// 获取所有日志表
+	var tableNames []string
+	err = db.Raw("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE ?", "%tgbot_logs%").Scan(&tableNames).Error
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	for _, tableName := range tableNames {
+		var exists bool
+		err := db.Raw("SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name=?)", tableName).Scan(&exists).Error
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		if !exists {
+			continue
+		}
+
+		// 统计今天的消息数
+		var todayCnt int64
+		err = db.Table(tableName).Where("create_time >= ? AND create_time <= ?", todayStart.Unix(), todayEnd.Unix()).Count(&todayCnt).Error
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		todayCount += todayCnt
+
+		// 统计今天的删除数 (op=1 或 op=2)
+		var todayDelCnt int64
+		err = db.Table(tableName).Where("create_time >= ? AND create_time <= ?", todayStart.Unix(), todayEnd.Unix()).Where("op IN (1, 2)").Count(&todayDelCnt).Error
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		todayDeleteCount += todayDelCnt
+
+		// 统计最近7天的消息数
+		var last7Cnt int64
+		err = db.Table(tableName).Where("create_time >= ?", last7DayStart.Unix()).Count(&last7Cnt).Error
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		last7DayCount += last7Cnt
+	}
+
+	return todayCount, todayDeleteCount, last7DayCount, nil
+}
+
+// GetTgbotCount 获取 Bot 数量
+func GetTgbotCount() (int64, error) {
+	var count int64
+	err := db.Model(&model.Tgbot{}).Where("is_deleted=?", 0).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 // DeleteTgbotLogsBeforeDate 删除指定日期之前的所有日志
 func DeleteTgbotLogsBeforeDate(before time.Time) error {
 	// 获取所有需要删除数据的表
