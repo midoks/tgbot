@@ -239,6 +239,8 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		op = 1
 	}
 
+	// 检查向其它(非本群的机器人发送消息)，导致无法删除恢复消息解决。
+
 	// 记录消息到日志
 	go db.AddTgbotLog(
 		bot.Self.ID,
