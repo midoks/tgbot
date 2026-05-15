@@ -1,6 +1,7 @@
 package tg
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -36,6 +37,11 @@ func PostPushmenuAdd(c *gin.Context) {
 	var field form.TgbotPushMenuAdd
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
+		return
+	}
+
+	if field.Name == "" {
+		common.ErrorResp(c, errors.New("名称不能为空!"), -1)
 		return
 	}
 

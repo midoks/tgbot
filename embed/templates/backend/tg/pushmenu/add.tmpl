@@ -700,8 +700,8 @@ layui.config({base: '/static/layuiadmin/'}).use(['jquery'], function(){
             }
         });
         
-        var menuName = $('#menu-name').val().trim() || 'Telegram 菜单';
-        
+        var menuName = $('#menu-name').val().trim();
+    
         var data = {
             name: menuName,
             id:'{[if $.Data]}{[$.Data.ID]}{[end]}',
