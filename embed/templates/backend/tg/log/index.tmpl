@@ -22,6 +22,7 @@
                                 <option value="bot_id">机器人ID</option>
                                 <option value="chat_id">聊天ID</option>
                                 <option value="chat_name">聊天名称</option>
+                                <option value="user_id">发送者ID</option>
                                 <option value="from_user_name">发送者</option>
                                 <option value="message_type">消息类型</option>
                                 <option value="content">内容</option>
@@ -84,7 +85,7 @@ function renderTable(){
             {field:'level', title:'日志级别', width:120},
             {field:'op', title:'操作', width:120,toolbar:"#opTpl"},
             {field:'create_time', title:'创建时间', width:185, templet: function(d){return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
-            {title:'操作', toolbar: '#cmdTpl', width:70, fixed: 'right'}
+            {title:'操作', toolbar: '#cmdTpl', width:170, fixed: 'right'}
         ]],
         page: true,
         done: function(res, curr, count){
@@ -101,6 +102,26 @@ form.on('submit(table-sreach)', function(){
     renderTable();
     return false;
 });
+
+
+table.on('tool(list)', function(obj){
+    switch(obj.event){
+        case 'signad':opSignad(obj);break;
+    };
+});
+
+function opSignad(obj){
+    $.post('/{[.admin_path]}/tg/log/signad',
+        {"user_id":obj.data.user_id,"from_user_name":obj.data.from_user_name},
+        function(data) {
+        showMsg(data.msg,function(){
+            if (data.code>-1){
+                location.reload();
+            }
+        },{icon:data.code>-1?1:2});
+    },'json');
+}
+
 ///
 });
 </script>
@@ -116,6 +137,7 @@ form.on('submit(table-sreach)', function(){
 </script>
 
 <script type="text/html" id="cmdTpl">
+<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event='signad'>标记推广用户</a>
 <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/log/delete','{{d.id}}','{{d.bot_id}}')">删除</a>
 </script>
 

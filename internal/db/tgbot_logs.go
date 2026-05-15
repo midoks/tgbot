@@ -306,6 +306,8 @@ func GetTgbotLogListByArgs(field form.TgbotLogPage) ([]model.TgbotLogs, int64, e
 				dbQuery = dbQuery.Where("chat_id = ?", chatID)
 			case "chat_name":
 				dbQuery = dbQuery.Where("chat_name LIKE ?", "%"+field.Key+"%")
+			case "user_id":
+				dbQuery = dbQuery.Where("user_id = ?", field.Key)
 			case "from_user_name":
 				dbQuery = dbQuery.Where("from_user_name LIKE ?", "%"+field.Key+"%")
 			case "message_type":

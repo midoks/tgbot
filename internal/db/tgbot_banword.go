@@ -43,6 +43,14 @@ func GetTgbotBanwordByID(id int64) (*model.TgbotBanWord, error) {
 	return &u, nil
 }
 
+func GetTgbotBanwordByWord(word string) (*model.TgbotBanWord, error) {
+	var u model.TgbotBanWord
+	if err := db.Where("word = ?", word).First(&u).Error; err != nil {
+		return nil, errors.Wrapf(err, "failed get tgbot banword data")
+	}
+	return &u, nil
+}
+
 func TgbotBanwordTriggerStatus(id int64) error {
 	var data model.TgbotBanWord
 	if err := db.First(&data, id).Error; err != nil {

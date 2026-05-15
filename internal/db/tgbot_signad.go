@@ -43,6 +43,14 @@ func GetTgbotSignadByID(id int64) (*model.TgbotSignAd, error) {
 	return &u, nil
 }
 
+func GetTgbotSignadByUserID(user_id int64) (*model.TgbotSignAd, error) {
+	var u model.TgbotSignAd
+	if err := db.Where("user_id = ?", user_id).First(&u).Error; err != nil {
+		return nil, errors.Wrapf(err, "failed get tgbot signad data")
+	}
+	return &u, nil
+}
+
 func TgbotSignadTriggerStatus(id int64) error {
 	var data model.TgbotSignAd
 	if err := db.First(&data, id).Error; err != nil {

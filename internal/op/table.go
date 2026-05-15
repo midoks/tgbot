@@ -84,9 +84,17 @@ func CleanTableByName(name string) error {
 	for prefix, typeInfo := range tableTypes {
 		if len(name) >= len(prefix) && name[:len(prefix)] == prefix {
 			if contains(typeInfo.Actions, "clean") {
-				sql := fmt.Sprintf("TRUNCATE TABLE %s", name)
-				if err := db.GetDb().Exec(sql).Error; err != nil {
-					return err
+				if conf.Database.Type == "sqlite3" {
+					// SQLite 不支持 TRUNCATE，使用 DELETE FROM
+					sql := fmt.Sprintf("DELETE FROM %s", name)
+					if err := db.GetDb().Exec(sql).Error; err != nil {
+						return err
+					}
+				} else {
+					sql := fmt.Sprintf("TRUNCATE TABLE %s", name)
+					if err := db.GetDb().Exec(sql).Error; err != nil {
+						return err
+					}
 				}
 				return nil
 			}
