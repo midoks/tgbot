@@ -154,6 +154,60 @@ func (n *Notification) SendWithKeyboard(ctx context.Context, text string, keyboa
 	}
 }
 
+// SendWithKeyboardReturningID 发送带内联键盘的消息并返回消息 ID
+func (n *Notification) SendWithKeyboardReturningID(ctx context.Context, text string, keyboard [][]tgbotapi.InlineKeyboardButton) (int, error) {
+	if !n.Enabled {
+		return 0, fmt.Errorf("notification is not enabled")
+	}
+
+	if text == "" {
+		return 0, fmt.Errorf("message text cannot be empty")
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+		msg := tgbotapi.NewMessage(n.ChatID, text)
+
+		// 只有当键盘不为空时才设置
+		if len(keyboard) > 0 {
+			markup := tgbotapi.NewInlineKeyboardMarkup(keyboard...)
+			msg.ReplyMarkup = markup
+		}
+
+		resp, err := n.telegramBot.Send(msg)
+		if err != nil {
+			return 0, fmt.Errorf("failed to send message with keyboard: %w", err)
+		}
+		return resp.MessageID, nil
+	}
+}
+
+// SendTextReturningID 发送纯文本消息并返回消息 ID
+func (n *Notification) SendTextReturningID(ctx context.Context, text string) (int, error) {
+	if !n.Enabled {
+		return 0, fmt.Errorf("notification is not enabled")
+	}
+
+	if text == "" {
+		return 0, fmt.Errorf("message text cannot be empty")
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+		msg := tgbotapi.NewMessage(n.ChatID, text)
+
+		resp, err := n.telegramBot.Send(msg)
+		if err != nil {
+			return 0, fmt.Errorf("failed to send message: %w", err)
+		}
+		return resp.MessageID, nil
+	}
+}
+
 // SendPhoto 发送照片
 func (n *Notification) SendPhoto(ctx context.Context, photoURL string, caption string) error {
 	if !n.Enabled {
