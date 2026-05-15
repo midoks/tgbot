@@ -83,6 +83,7 @@ func InstallConf(data map[string]string) error {
 	// Create save config (excludes general and admin)
 	saveConfig := YAMLConfigCustom{
 		AppName:  appConfig.AppName,
+		RunMode:  appConfig.RunMode,
 		Log:      appConfig.Log,
 		Session:  appConfig.Session,
 		Web:      appConfig.Web,

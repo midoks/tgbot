@@ -31,15 +31,13 @@ type AppConfig struct {
 
 // YAMLConfigSave represents the YAML configuration structure for saving (excludes general and admin)
 type YAMLConfigCustom struct {
-	AppName   string         `yaml:"app_name"`
-	BrandName string         `yaml:"brand_name"`
-	RunUser   string         `yaml:"run_user"`
-	RunMode   string         `yaml:"run_mode"`
-	Log       LogConfig      `yaml:"log"`
-	Session   SessionConfig  `yaml:"session"`
-	Web       WebConfig      `yaml:"web"`
-	Security  SecurityConfig `yaml:"security"`
-	Database  DatabaseConfig `yaml:"database"`
+	AppName  string         `yaml:"app_name"`
+	RunMode  string         `yaml:"run_mode"`
+	Log      LogConfig      `yaml:"log"`
+	Session  SessionConfig  `yaml:"session"`
+	Web      WebConfig      `yaml:"web"`
+	Security SecurityConfig `yaml:"security"`
+	Database DatabaseConfig `yaml:"database"`
 }
 
 // GeneralConfig represents the general section in YAML
