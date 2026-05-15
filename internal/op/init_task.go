@@ -164,17 +164,17 @@ func (t *MenuPushTask) deleteMessageAfter(chatID int64, messageID int, delaySeco
 	go func() {
 		select {
 		case <-time.After(time.Duration(delaySeconds) * time.Second):
-			fmt.Printf("[MenuPush] Bot %d: Deleting message %d after %d seconds\n", t.botID, messageID, delaySeconds)
+			// fmt.Printf("[MenuPush] Bot %d: Deleting message %d after %d seconds\n", t.botID, messageID, delaySeconds)
 
 			deleteConfig := tgbotapi.NewDeleteMessage(chatID, messageID)
 			_, err := t.notify.TelegramBot().Request(deleteConfig)
 			if err != nil {
-				fmt.Printf("[MenuPush] Bot %d: Failed to delete message %d: %v\n", t.botID, messageID, err)
+				// fmt.Printf("[MenuPush] Bot %d: Failed to delete message %d: %v\n", t.botID, messageID, err)
 			} else {
-				fmt.Printf("[MenuPush] Bot %d: Message %d deleted successfully\n", t.botID, messageID)
+				// fmt.Printf("[MenuPush] Bot %d: Message %d deleted successfully\n", t.botID, messageID)
 			}
 		case <-t.stopChan:
-			fmt.Printf("[MenuPush] Bot %d: Stopping, cancel message deletion for message %d\n", t.botID, messageID)
+			// fmt.Printf("[MenuPush] Bot %d: Stopping, cancel message deletion for message %d\n", t.botID, messageID)
 			return
 		}
 	}()
@@ -257,8 +257,8 @@ func InitMenuPushTasks() {
 				continue
 			}
 
-			fmt.Printf("[MenuPush] Starting menu push task for bot %d with menu %d, chat %d, freq %d seconds\n",
-				botData.ID, menu.ID, botData.MenuSendID, botData.MenuFreq)
+			// fmt.Printf("[MenuPush] Starting menu push task for bot %d with menu %d, chat %d, freq %d seconds\n",
+			// botData.ID, menu.ID, botData.MenuSendID, botData.MenuFreq)
 
 			// 启动推送任务
 			StartMenuPushTask(botData, *menu, botData.MenuFreq)
