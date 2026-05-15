@@ -66,24 +66,14 @@ func LogSignad(c *gin.Context) {
 		CreateTime:   time.Now().Unix(),
 	}
 
-	if field.ID > 0 {
-		_, err := db.GetTgbotSignadByID(field.ID)
-		if err == nil {
-			common_data.UpdateTime = time.Now().Unix()
-			if err := db.GetDb().Model(&model.TgbotSignAd{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
-				common.ErrorResp(c, err, -1)
-				return
-			}
-		}
-	} else {
-		_, err := db.GetTgbotSignadByUserID(field.UserID)
-		if err == nil {
-			common.ErrorResp(c, errors.New("已经存在!"), -2)
-		}
-		if err := db.GetDb().Create(common_data).Error; err != nil {
-			common.ErrorResp(c, err, -1)
-			return
-		}
+	_, err := db.GetTgbotSignadByUserID(field.UserID)
+	if err == nil {
+		common.ErrorResp(c, errors.New("已经存在!"), -2)
+		return
+	}
+	if err := db.GetDb().Create(common_data).Error; err != nil {
+		common.ErrorResp(c, err, -1)
+		return
 	}
 
 	common.SuccessResp(c)
