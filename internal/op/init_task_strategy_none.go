@@ -308,6 +308,8 @@ func TelegramMessageHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Messa
 		switch update.Message.Text {
 		case "/status":
 			return HandleStatusCommand(update, bot)
+		case "/admin_addr":
+			return HandleAdminAddrCommand(update, bot)
 		case "/start":
 			fallthrough
 		case "/?":
