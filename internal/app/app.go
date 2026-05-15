@@ -189,7 +189,7 @@ func initRuoteAdmin(r *gin.Engine) {
 	backstage_admin.POST("/tg/pushmenu/add", backend_tg.PostPushmenuAdd)
 	backstage_admin.POST("/tg/pushmenu/trigger_status", backend_tg.TgbotPushMenuTriggerStatus)
 	backstage_admin.GET("/tg/pushmenu/list", backend_tg.TgbotPushmenuList)
-	backstage_admin.POST("/tg/pushmenu/delete", backend_tg.TgbotPushmenuDelete)
+	backstage_admin.POST("/tg/pushmenu/delete", backend_tg.TgbotPushMenuDelete)
 
 }
 

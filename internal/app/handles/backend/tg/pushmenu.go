@@ -46,7 +46,7 @@ func PostPushmenuAdd(c *gin.Context) {
 	}
 
 	if field.ID > 0 {
-		_, err := db.GetTgbotBanwordByID(field.ID)
+		_, err := db.GetTgbotPushMenuByID(field.ID)
 		if err == nil {
 			common_data.UpdateTime = time.Now().Unix()
 			if err := db.GetDb().Model(&model.TgbotBanWord{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
@@ -102,7 +102,7 @@ func TgbotPushMenuDelete(c *gin.Context) {
 		return
 	}
 
-	err := db.DeleteTgbotBanwordByID(field.ID)
+	err := db.DeleteTgbotPushMenuByID(field.ID)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return

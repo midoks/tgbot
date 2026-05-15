@@ -12,7 +12,7 @@ import (
 
 func applyTgbotPushMenuFilters(query *gorm.DB, field form.TgbotList) *gorm.DB {
 	if field.Key != "" {
-		query = query.Where("word LIKE ?", "%"+field.Key+"%")
+		query = query.Where("name LIKE ?", "%"+field.Key+"%")
 	}
 	return query
 }
@@ -39,14 +39,6 @@ func GetTgbotPushMenuByID(id int64) (*model.TgbotPushMenu, error) {
 	var u model.TgbotPushMenu
 	if err := db.First(&u, id).Error; err != nil {
 		return nil, errors.Wrapf(err, "failed get tgbot data")
-	}
-	return &u, nil
-}
-
-func GetTgbotPushMenuByWord(word string) (*model.TgbotPushMenu, error) {
-	var u model.TgbotPushMenu
-	if err := db.Where("word = ?", word).First(&u).Error; err != nil {
-		return nil, errors.Wrapf(err, "failed get tgbot banword data")
 	}
 	return &u, nil
 }
