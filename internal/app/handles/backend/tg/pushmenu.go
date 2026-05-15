@@ -33,14 +33,15 @@ func PushmenuAdd(c *gin.Context) {
 }
 
 func PostPushmenuAdd(c *gin.Context) {
-	var field form.TgbotBanwordAdd
+	var field form.TgbotPushMenuAdd
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
 
-	common_data := &model.TgbotBanWord{
-		Word:       field.Word,
+	common_data := &model.TgbotPushMenu{
+		Name:       field.Name,
+		Params:     field.Params,
 		Status:     field.Status,
 		CreateTime: time.Now().Unix(),
 	}
@@ -49,18 +50,16 @@ func PostPushmenuAdd(c *gin.Context) {
 		_, err := db.GetTgbotPushMenuByID(field.ID)
 		if err == nil {
 			common_data.UpdateTime = time.Now().Unix()
-			if err := db.GetDb().Model(&model.TgbotBanWord{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
+			if err := db.GetDb().Model(&model.TgbotPushMenu{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
 				common.ErrorResp(c, err, -1)
 				return
 			}
 		}
 	} else {
-
 		if err := db.GetDb().Create(common_data).Error; err != nil {
 			common.ErrorResp(c, err, -1)
 			return
 		}
-
 	}
 	common.SuccessResp(c)
 }

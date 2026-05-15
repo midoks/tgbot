@@ -55,8 +55,7 @@ function renderTable(){
         title: '消息日志',
         cols: [[
             {field:'id', title:'ID'},
-            {field:'user_id', title:'用户ID'},
-            {field:'from_user_name', title:'用户名称'},
+            {field:'name', title:'名称'},
             {field:'status', title:'状态', toolbar:"#statusTpl",width:80},
             {field:'update_time', title:'更新时间', width:185, templet: function(d){return layui.util.toDateString(d.update_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
             {field:'create_time', title:'创建时间', width:185, templet: function(d){return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
