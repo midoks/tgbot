@@ -407,13 +407,12 @@
 
         <!-- 右侧：编辑区域 -->
         <div class="edit-panel">
-            <input type="text" id="menu-name" class="menu-name-input" value="{[if $.Data]}{[$.Data.Name]}{[end]}" placeholder="请输入菜单名称">
+            <input type="text" id="menu-name" class="menu-name-input" value="" placeholder="请输入菜单名称">
             
             <!-- 消息文本 -->
             <div class="section">
                 <div class="section-title">📝 消息内容</div>
-                <textarea class="message-textarea" id="message-input" placeholder="请输入消息内容...">由于在解决的问题的时候，不给信息，无法了解情况。以后不再群里回答技术问题。全部去论坛提问。在解决问题的过程中，可能需要面板信息，和SSH信息，如无法提供请不要提问。为了让群里都知晓。轮播一年！
-为了不打扰双方，私聊解决问题先转1000U，否则无视!</textarea>
+                <textarea class="message-textarea" id="message-input" placeholder="请输入消息内容..."></textarea>
             </div>
             
             <!-- 内联键盘编辑 -->
@@ -422,50 +421,8 @@
                 <div class="button-groups" id="button-groups">
                     <div class="button-row">
                         <div class="drag-handle" title="拖动排序">☰</div>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="海内外实名 KYC-执照代付✅域名">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/kuadugongzuoshi">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                    </div>
-                    <div class="button-row">
-                        <div class="drag-handle" title="拖动排序">☰</div>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="高价收一切流量 @caifutong555">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/caifutong555">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                    </div>
-                    <div class="button-row">
-                        <div class="drag-handle" title="拖动排序">☰</div>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="18+ 资源采集">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://ckzy1.com">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                    </div>
-                    <div class="button-row">
-                        <div class="drag-handle" title="拖动排序">☰</div>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="实名认证/过人脸🕵️‍♀️各种账号处理✅">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/niuniu234">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                    </div>
-                    <div class="button-row">
-                        <div class="drag-handle" title="拖动排序">☰</div>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="官网">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://github.com/midoks/mdserver-web">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="💎DigitalVirt(赞助商)">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://digitalvirt.com/aff.php?aff=154">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                    </div>
-                    <div class="button-row">
-                        <div class="drag-handle" title="拖动排序">☰</div>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="论坛">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="搜索">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu/search.php">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="@ME">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
-                        <button class="del-col-btn" onclick="delCol(this)">×</button>
-                        <input type="text" class="btn-input" placeholder="按钮文字" value="300RMB/月">
-                        <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
+                        <input type="text" class="btn-input" placeholder="按钮文字">
+                        <input type="text" class="btn-url" placeholder="URL 链接">
                         <button class="del-col-btn" onclick="delCol(this)">×</button>
                     </div>
                 </div>
@@ -500,6 +457,9 @@ layui.config({base: '/static/layuiadmin/'}).use(['jquery'], function(){
             updatePreview();
         }
     });
+
+    // 从数据库初始化数据
+    initFromData();
 
     // 初始化预览
     updatePreview();
@@ -555,6 +515,43 @@ layui.config({base: '/static/layuiadmin/'}).use(['jquery'], function(){
         }
     }
 
+    // 从数据库初始化数据
+    function initFromData() {
+        var paramsData = '{[if $.Data]}{[$.Data.Params]}{[end]}';
+        // console.log("paramsData:",paramsData);
+        if (paramsData && paramsData !== '{}') {
+            try {
+                var data = JSON.parse(paramsData);
+                
+                // 初始化菜单名称
+                $('#menu-name').val('{[if $.Data]}{[$.Data.Name]}{[end]}');
+                
+                // 初始化消息内容
+                if (data.message) {
+                    $('#message-input').val(data.message);
+                }
+                
+                // 初始化键盘按钮
+                if (data.keyboard && data.keyboard.length > 0) {
+                    var html = '';
+                    data.keyboard.forEach(function(row) {
+                        html += '<div class="button-row">';
+                        html += '<div class="drag-handle" title="拖动排序">☰</div>';
+                        row.forEach(function(btn) {
+                            html += '<input type="text" class="btn-input" placeholder="按钮文字" value="' + (btn.text || '') + '">';
+                            html += '<input type="text" class="btn-url" placeholder="URL 链接" value="' + (btn.url || '') + '">';
+                            html += '<button class="del-col-btn" onclick="delCol(this)">×</button>';
+                        });
+                        html += '</div>';
+                    });
+                    $('#button-groups').html(html);
+                }
+            } catch (e) {
+                console.error('Failed to parse params data:', e);
+            }
+        }
+    }
+
     // 添加行
     window.addRow = function() {
         var html = `
@@ -569,17 +566,29 @@ layui.config({base: '/static/layuiadmin/'}).use(['jquery'], function(){
         updatePreview();
     }
 
-    // 添加列到最后一行
+    // 添加列（优先添加到有焦点输入框的行，否则添加到最后一行）
     window.addCol = function() {
         var rows = $('.button-row');
         if (rows.length > 0) {
-            var lastRow = rows.last();
+            // 查找当前有焦点的输入框所在的行
+            var focusedInput = $('.btn-input:focus, .btn-url:focus');
+            var targetRow = null;
+            
+            if (focusedInput.length > 0) {
+                targetRow = focusedInput.closest('.button-row');
+            }
+            
+            // 如果没有找到有焦点的行，则添加到最后一行
+            if (!targetRow || targetRow.length === 0) {
+                targetRow = rows.last();
+            }
+            
             var html = `
                 <input type="text" class="btn-input" placeholder="按钮文字">
                 <input type="text" class="btn-url" placeholder="URL 链接">
                 <button class="del-col-btn" onclick="delCol(this)">×</button>
             `;
-            lastRow.append(html);
+            targetRow.append(html);
             updatePreview();
         }
     }
@@ -618,55 +627,14 @@ layui.config({base: '/static/layuiadmin/'}).use(['jquery'], function(){
 
     // 重置表单
     window.resetForm = function() {
-        $('#message-input').val('由于在解决的问题的时候，不给信息，无法了解情况。以后不再群里回答技术问题。全部去论坛提问。在解决问题的过程中，可能需要面板信息，和 SSH 信息，如无法提供请不要提问。为了让群里都知晓。轮播一年！\n为了不打扰双方，私聊解决问题先转 1000U，否则无视!');
+        $('#menu-name').val('');
+        $('#message-input').val('');
         
         var html = `
             <div class="button-row">
                 <div class="drag-handle" title="拖动排序">☰</div>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="海内外实名 KYC-执照代付✅域名">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/kuadugongzuoshi">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-            </div>
-            <div class="button-row">
-                <div class="drag-handle" title="拖动排序">☰</div>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="高价收一切流量 @caifutong555">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/caifutong555">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-            </div>
-            <div class="button-row">
-                <div class="drag-handle" title="拖动排序">☰</div>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="18+ 资源采集">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://ckzy1.com">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-            </div>
-            <div class="button-row">
-                <div class="drag-handle" title="拖动排序">☰</div>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="实名认证/过人脸🕵️‍♀️各种账号处理✅">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/niuniu234">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-            </div>
-            <div class="button-row">
-                <div class="drag-handle" title="拖动排序">☰</div>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="官网">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://github.com/midoks/mdserver-web">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="💎DigitalVirt(赞助商)">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://digitalvirt.com/aff.php?aff=154">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-            </div>
-            <div class="button-row">
-                <div class="drag-handle" title="拖动排序">☰</div>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="论坛">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="搜索">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu/search.php">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="@ME">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
-                <button class="del-col-btn" onclick="delCol(this)">×</button>
-                <input type="text" class="btn-input" placeholder="按钮文字" value="300RMB/月">
-                <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
+                <input type="text" class="btn-input" placeholder="按钮文字">
+                <input type="text" class="btn-url" placeholder="URL 链接">
                 <button class="del-col-btn" onclick="delCol(this)">×</button>
             </div>
         `;
