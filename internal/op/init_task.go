@@ -289,8 +289,14 @@ func ReloadTelegramTask() {
 		return
 	}
 
+	// 移除所有现有的机器人
+	if err := manager.RemoveAllBots(); err != nil {
+		fmt.Printf("failed to remove all bots: %v\n", err)
+	}
+
 	// 等待足够的时间确保所有 bot 实例完全停止
 	time.Sleep(3 * time.Second)
+	// fmt.Println("移除所有现有的机器人成功!!")
 
 	// 重新添加和启动机器人
 	if len(telegram_list) > 0 {
