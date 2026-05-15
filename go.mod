@@ -10,10 +10,8 @@ require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/goccy/go-yaml v1.19.2
-	github.com/gorilla/websocket v1.5.3
 	github.com/phachon/go-logger v0.0.0-20191215032019-86e4227f71ea
 	github.com/pkg/errors v0.9.1
-	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.9.4
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/urfave/cli v1.22.17
