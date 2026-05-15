@@ -17,6 +17,9 @@ var (
 	banwordsCache     []model.TgbotBanWord
 	banwordsCacheTime time.Time
 	banwordsCacheMu   sync.RWMutex
+	signadCache       map[int64]bool
+	signadCacheTime   time.Time
+	signadCacheMu     sync.RWMutex
 	cacheExpireTime   = 5 * time.Minute
 )
 
@@ -25,6 +28,13 @@ func ClearBanwordsCache() {
 	defer banwordsCacheMu.Unlock()
 	banwordsCache = nil
 	banwordsCacheTime = time.Time{}
+}
+
+func ClearSignadCache() {
+	signadCacheMu.Lock()
+	defer signadCacheMu.Unlock()
+	signadCache = nil
+	signadCacheTime = time.Time{}
 }
 
 // MessageInfo 消息信息结构体
@@ -173,6 +183,38 @@ func getActiveBanwordsWithCache() ([]model.TgbotBanWord, error) {
 	return result, nil
 }
 
+// isSignadUser 检查用户是否是推广用户（带缓存）
+func isSignadUser(userID int64) bool {
+	signadCacheMu.RLock()
+	if signadCache != nil && time.Since(signadCacheTime) < cacheExpireTime {
+		isSignad := signadCache[userID]
+		signadCacheMu.RUnlock()
+		return isSignad
+	}
+	signadCacheMu.RUnlock()
+
+	signadCacheMu.Lock()
+	defer signadCacheMu.Unlock()
+
+	if signadCache != nil && time.Since(signadCacheTime) < cacheExpireTime {
+		return signadCache[userID]
+	}
+
+	list, err := db.GetActiveTgbotSignad()
+	if err != nil {
+		fmt.Printf("Failed to get active signads: %v\n", err)
+		return false
+	}
+
+	signadCache = make(map[int64]bool)
+	for _, signad := range list {
+		signadCache[signad.UserID] = true
+	}
+	signadCacheTime = time.Now()
+
+	return signadCache[userID]
+}
+
 // logAndPrintMessage 记录并打印消息
 func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	msgInfo := parseMessageInfo(update)
@@ -184,6 +226,12 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	if hasBanword {
 		op = 1
 		matchedWord = word
+	}
+
+	// 检查是否是推广用户
+	isSignad := isSignadUser(update.Message.From.ID)
+	if isSignad {
+		op = 2
 	}
 
 	// 记录消息到日志
@@ -204,14 +252,22 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s, Op: %d\n",
 		msgInfo.ChatName, msgInfo.MsgType, msgInfo.MsgContent, msgInfo.FromUserName, op)
 
-	// 如果消息需要删除，3秒后删除消息
+	// 如果消息需要删除，违禁词3秒后删除，推广用户1分钟后删除
 	if op == 1 {
 		go func() {
-			time.Sleep(1 * time.Second)
+			time.Sleep(3 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
 			_, _ = bot.Send(deleteMsg)
 			fmt.Printf("Deleted message %d from chat %d (matched: %q)\n",
 				update.Message.MessageID, update.Message.Chat.ID, matchedWord)
+		}()
+	} else if op == 2 {
+		go func() {
+			time.Sleep(60 * time.Second)
+			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
+			_, _ = bot.Send(deleteMsg)
+			fmt.Printf("Deleted message %d from chat %d (signad user)\n",
+				update.Message.MessageID, update.Message.Chat.ID)
 		}()
 	}
 }

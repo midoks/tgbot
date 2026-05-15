@@ -11,6 +11,7 @@ import (
 	"tgbot/internal/app/form"
 	"tgbot/internal/db"
 	"tgbot/internal/model"
+	"tgbot/internal/op"
 )
 
 func Signad(c *gin.Context) {
@@ -64,6 +65,7 @@ func PostSignadAdd(c *gin.Context) {
 
 	}
 
+	op.ClearSignadCache()
 	common.SuccessResp(c)
 }
 
@@ -94,6 +96,7 @@ func TgbotSignadTriggerStatus(c *gin.Context) {
 		common.ErrorResp(c, err, -1)
 		return
 	}
+	op.ClearSignadCache()
 	common.SuccessResp(c)
 }
 
@@ -109,5 +112,6 @@ func TgbotSignadDelete(c *gin.Context) {
 		common.ErrorResp(c, err, -1)
 		return
 	}
+	op.ClearSignadCache()
 	common.SuccessResp(c)
 }

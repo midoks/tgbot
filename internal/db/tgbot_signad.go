@@ -75,7 +75,7 @@ func DeleteTgbotSignadByID(id int64) error {
 func GetActiveTgbotSignad() ([]model.TgbotSignAd, error) {
 	var list []model.TgbotSignAd
 	if err := db.Where("status = ?", true).Find(&list).Error; err != nil {
-		return nil, errors.Wrap(err, "failed get active banwords")
+		return nil, errors.Wrap(err, "failed get active signad")
 	}
 	return list, nil
 }
