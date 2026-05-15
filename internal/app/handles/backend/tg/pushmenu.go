@@ -25,7 +25,7 @@ func PushmenuAdd(c *gin.Context) {
 	data := common.CommonVer(c)
 	data["id"] = id
 
-	banword_data, err := db.GetTgbotBanwordByID(idint)
+	banword_data, err := db.GetTgbotPushMenuByID(idint)
 	if err == nil {
 		data["Data"] = banword_data
 	}
