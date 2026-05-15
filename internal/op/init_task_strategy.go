@@ -20,20 +20,8 @@ func HandleHelpCommand(update tgbotapi.Update, bot *tgbotapi.BotAPI, includeImpo
 /help - 显示此帮助信息`
 
 	if includeImportFormat {
-		helpText += `
-
-批量导入格式:
-备注: https://example.com
-备注: https://test.com
-=========================
-备注: https://domain.com
-
-说明:
-- 每行格式: 备注: URL
-- 使用 ========================= 作为分组分隔符
-- URL 必须以 http:// 或 https:// 开头`
+		helpText += ``
 	}
-
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, helpText)
 	_, err := bot.Send(msg)
 	return err
