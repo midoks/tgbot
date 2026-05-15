@@ -26,7 +26,7 @@ var Install = cli.Command{
 }
 
 const systemdServiceTemplate = `[Unit]
-Description=UptimePK Monitoring Service
+Description=TgBot Monitoring Service
 After=network.target
 
 [Service]
