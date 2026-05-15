@@ -252,22 +252,32 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	fmt.Printf("Received message - Chat: %s, Type: %s, Content: %s, From: %s, Op: %d\n",
 		msgInfo.ChatName, msgInfo.MsgType, msgInfo.MsgContent, msgInfo.FromUserName, op)
 
-	// 如果消息需要删除，违禁词3秒后删除，推广用户1分钟后删除
+	// 如果消息需要删除，违禁词3秒后删除，推广用户30秒后删除
 	if op == 1 {
 		go func() {
 			time.Sleep(3 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
-			_, _ = bot.Send(deleteMsg)
-			fmt.Printf("Deleted message %d from chat %d (matched: %q)\n",
-				update.Message.MessageID, update.Message.Chat.ID, matchedWord)
+			_, err := bot.Request(deleteMsg)
+			if err != nil {
+				fmt.Printf("Failed to delete message %d from chat %d (matched: %q): %v\n",
+					update.Message.MessageID, update.Message.Chat.ID, matchedWord, err)
+			} else {
+				fmt.Printf("Deleted message %d from chat %d (matched: %q)\n",
+					update.Message.MessageID, update.Message.Chat.ID, matchedWord)
+			}
 		}()
 	} else if op == 2 {
 		go func() {
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
-			_, _ = bot.Send(deleteMsg)
-			fmt.Printf("Deleted message %d from chat %d (signad user)\n",
-				update.Message.MessageID, update.Message.Chat.ID)
+			_, err := bot.Request(deleteMsg)
+			if err != nil {
+				fmt.Printf("Failed to delete message %d from chat %d (signad user): %v\n",
+					update.Message.MessageID, update.Message.Chat.ID, err)
+			} else {
+				fmt.Printf("Deleted message %d from chat %d (signad user)\n",
+					update.Message.MessageID, update.Message.Chat.ID)
+			}
 		}()
 	}
 }
