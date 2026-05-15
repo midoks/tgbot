@@ -11,7 +11,6 @@ import (
 	"tgbot/internal/app/form"
 	"tgbot/internal/db"
 	"tgbot/internal/model"
-	"tgbot/internal/op"
 )
 
 func Pushmenu(c *gin.Context) {
@@ -30,7 +29,7 @@ func PushmenuAdd(c *gin.Context) {
 	if err == nil {
 		data["Data"] = banword_data
 	}
-	c.HTML(http.StatusOK, "backend/tg/banword/add.tmpl", data)
+	c.HTML(http.StatusOK, "backend/tg/pushmenu/add.tmpl", data)
 }
 
 func PostPushmenuAdd(c *gin.Context) {
@@ -63,8 +62,6 @@ func PostPushmenuAdd(c *gin.Context) {
 		}
 
 	}
-
-	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }
 
@@ -75,7 +72,7 @@ func TgbotPushmenuList(c *gin.Context) {
 		return
 	}
 
-	result, count, err := db.GetTgbotBanwordListByArgs(field)
+	result, count, err := db.GetTgbotPushMenuByArgs(field)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return
@@ -83,23 +80,22 @@ func TgbotPushmenuList(c *gin.Context) {
 	common.SuccessLayuiResp(c, count, "ok", result)
 }
 
-func TgbotPushmenuTriggerStatus(c *gin.Context) {
+func TgbotPushMenuTriggerStatus(c *gin.Context) {
 	var field form.ID
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
 
-	err := db.TgbotBanwordTriggerStatus(field.ID)
+	err := db.TgbotPushMenuTriggerStatus(field.ID)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
-	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }
 
-func TgbotPushmenuDelete(c *gin.Context) {
+func TgbotPushMenuDelete(c *gin.Context) {
 	var field form.ID
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
@@ -111,6 +107,5 @@ func TgbotPushmenuDelete(c *gin.Context) {
 		common.ErrorResp(c, err, -1)
 		return
 	}
-	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }

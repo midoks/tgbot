@@ -6,9 +6,9 @@
             <div class="layui-card-body">
 
                 <div class="layui-form toolbar" style="margin-top: 10px;margin-bottom: 10px;">
-                <form class="layui-form" action="" id="tgbot_banword_form" onclick="return false;">
+                <form class="layui-form" action="" id="tgbot_pushmenu_form" onclick="return false;">
 
-                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/signad/add',600,400)">
+                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/pushmenu/add',600,400)">
                         <i class="layui-icon layui-icon-add-circle"></i> 添加
                     </button>
 
@@ -45,12 +45,12 @@ var tableIns, tableData = [];
 
 function renderTable(){
     // 获取表单参数
-    var where_data = $('#tgbot_banword_form').serializeArray();
+    var where_data = $('#tgbot_pushmenu_form').serializeArray();
     where_data = array2arr(where_data);
     
     tableIns = table.render({
         elem: '#list',
-        url: '/{[.admin_path]}/tg/signad/list',
+        url: '/{[.admin_path]}/tg/pushmenu/list',
         where: where_data,
         title: '消息日志',
         cols: [[
@@ -85,7 +85,7 @@ table.on('tool(list)', function(obj){
 });
 
 function opStatus(obj){
-    $.post('/{[.admin_path]}/tg/signad/trigger_status', {"id":obj.data.id}, function(data) {
+    $.post('/{[.admin_path]}/tg/pushmenu/trigger_status', {"id":obj.data.id}, function(data) {
         showMsg(data.msg,function(){
             if (data.code>-1){
                 location.reload();
@@ -107,8 +107,8 @@ function opStatus(obj){
 </script>
 
 <script type="text/html" id="cmdTpl">
-<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/signad/add?id={{d.id}}',600,400)">修改</a>
-<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/signad/delete','{{d.id}}','{{d.bot_id}}')">删除</a>
+<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/pushmenu/add?id={{d.id}}',600,400)">修改</a>
+<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/pushmenu/delete','{{d.id}}','{{d.bot_id}}')">删除</a>
 </script>
 
 {[template "backend/common/footer.tmpl" .]}

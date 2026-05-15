@@ -17,7 +17,7 @@ func applyTgbotPushMenuFilters(query *gorm.DB, field form.TgbotList) *gorm.DB {
 	return query
 }
 
-func GetgbotPushMenuByArgs(field form.TgbotList) ([]model.TgbotPushMenu, int64, error) {
+func GetTgbotPushMenuByArgs(field form.TgbotList) ([]model.TgbotPushMenu, int64, error) {
 	page := field.Page.Page
 	size := field.Page.Limit
 
