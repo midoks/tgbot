@@ -60,6 +60,21 @@ create_dirs() {
     mkdir -p "$INSTALL_DIR"
 }
 
+get_file_md5() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        if command -v md5sum &> /dev/null; then
+            md5sum "$file" | awk '{print $1}'
+        elif command -v md5 &> /dev/null; then
+            md5 -r "$file" | awk '{print $1}'
+        else
+            echo ""
+        fi
+    else
+        echo ""
+    fi
+}
+
 download_and_extract() {
     echo -e "${YELLOW}正在下载 tgbot ${VERSION}...${NC}"
     URL="https://github.com/${REPO}/releases/download/${VERSION}/tgbot_${VERSION}_linux_${ARCH}.tar.gz"
@@ -71,11 +86,30 @@ download_and_extract() {
         exit 1
     fi
 
+    NEW_MD5=$(get_file_md5 "$TMP_FILE")
+    echo -e "${GREEN}下载文件 MD5: ${NEW_MD5}${NC}"
+
+    BINARY_FILE="${INSTALL_DIR}/tgbot"
+    if [ -f "$BINARY_FILE" ]; then
+        OLD_MD5=$(get_file_md5 "$BINARY_FILE")
+        echo -e "${YELLOW}已安装文件 MD5: ${OLD_MD5}${NC}"
+
+        if [ "$NEW_MD5" = "$OLD_MD5" ] && [ -n "$OLD_MD5" ]; then
+            echo -e "${GREEN}文件已存在且 MD5 相同，跳过安装${NC}"
+            rm -f "$TMP_FILE"
+            return
+        else
+            echo -e "${YELLOW}文件已存在但 MD5 不同，将覆盖安装${NC}"
+        fi
+    else
+        echo -e "${YELLOW}文件不存在，开始安装...${NC}"
+    fi
+
     echo -e "${YELLOW}正在解压...${NC}"
     tar -xzf "$TMP_FILE" -C "$INSTALL_DIR"
     rm -f "$TMP_FILE"
 
-    chmod +x "$INSTALL_DIR/tgbot"
+    chmod +x "$BINARY_FILE"
     echo -e "${GREEN}解压完成${NC}"
 }
 
@@ -107,7 +141,7 @@ show_info() {
     echo -e "  停止: systemctl stop ${SERVICE_NAME}"
     echo -e "  重启: systemctl restart ${SERVICE_NAME}"
     echo -e "  状态: systemctl status ${SERVICE_NAME}"
-    echo -e "  日志: journalctl -u  ${SERVICE_NAME} -f"
+    echo -e "  日志: journalctl -u ${SERVICE_NAME} -f"
     echo ""
     echo -e "${GREEN}========================================${NC}"
 }
