@@ -107,6 +107,7 @@ show_info() {
     echo -e "  停止: systemctl stop ${SERVICE_NAME}"
     echo -e "  重启: systemctl restart ${SERVICE_NAME}"
     echo -e "  状态: systemctl status ${SERVICE_NAME}"
+    echo -e "  日志: journalctl -u  ${SERVICE_NAME} -f"
     echo ""
     echo -e "${GREEN}========================================${NC}"
 }
