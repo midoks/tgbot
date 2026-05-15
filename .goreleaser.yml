@@ -5,8 +5,6 @@
 
 # find . -name ".pyc" -print -delete && goreleaser release --snapshot --clean
 
-# git tag -a v1.2 -m "release v1.2"
-# git push origin v1.2
 # goreleaser --rm-dist
 # goreleaser --snapshot --skip-publish --rm-dist
 
