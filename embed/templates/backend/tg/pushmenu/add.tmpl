@@ -11,18 +11,15 @@
     overflow-y: auto;
 }
 .type-input::-webkit-scrollbar {
-    /*滚动条整体样式*/
-    width : 10px;  /*高宽分别对应横竖滚动条的尺寸*/
+    width : 10px;
     height: 1px;
 }
 .type-input::-webkit-scrollbar-thumb {
-    /*滚动条里面小方块*/
     border-radius: 10px;
     box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
     background   : #666;
 }
 .type-input::-webkit-scrollbar-track {
-    /*滚动条里面轨道*/
     box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     background   : #ededed;
@@ -56,10 +53,72 @@
 .hide{
     display: none;
 }
+
+/* 菜单预览样式 */
+.menu-preview {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.menu-preview h3 {
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.menu-item {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(5px);
+}
+
+.menu-item:last-child {
+    margin-bottom: 0;
+}
+
+.menu-item .menu-text {
+    flex: 1;
+    font-size: 14px;
+}
+
+.menu-item .menu-arrow {
+    font-size: 18px;
+}
 </style>
 <!-- start -->
 
 <div class="layui-fluid">
+    <!-- 菜单预览区域 -->
+    <div class="menu-preview">
+        <h3>📋 菜单预览</h3>
+        <div id="menu-preview-list">
+            {[if .Data]}
+            <div class="menu-item">
+                <span class="menu-text">{[.Data.Name]}</span>
+                <span class="menu-arrow">›</span>
+            </div>
+            {[else]}
+            <div class="menu-item" style="opacity: 0.6;">
+                <span class="menu-text">添加菜单后预览</span>
+                <span class="menu-arrow">›</span>
+            </div>
+            {[end]}
+        </div>
+    </div>
 
     <div class="layui-form toolbar layui-padding-3" style="margin-top: 10px;margin-bottom: 10px;">
     <form class="layui-form layui-form-pane" onclick="return false;">
@@ -67,19 +126,19 @@
             <colgroup><col width="150"><col></colgroup>
             <tbody>
                 <tr>
-                    <td>用户ID</td>
+                    <td>菜单名称</td>
                     <td>
                         <div class="layui-input-inline">
-                            <input type="text" name="user_id" autocomplete="off" class="layui-input" value="{[if .Data]}{[.Data.UserID]}{[end]}" placeholder="用户ID">
+                            <input type="text" name="name" autocomplete="off" class="layui-input menu-name-input" value="{[if .Data]}{[.Data.Name]}{[end]}" placeholder="请输入菜单名称">
                         </div>
                     </td>
                 </tr>
 
                 <tr>
-                    <td>用户名称</td>
+                    <td>菜单内容</td>
                     <td>
-                        <div class="layui-input-inline">
-                            <input type="text" name="from_user_name" autocomplete="off" class="layui-input" value="{[if .Data]}{[.Data.FromUserName]}{[end]}" placeholder="用户名称">
+                        <div class="layui-input-inline" style="width: 400px;">
+                            <textarea name="params" class="layui-textarea type-input menu-params-input" placeholder="请输入菜单内容，支持换行">{[if .Data]}{[.Data.Params]}{[end]}</textarea>
                         </div>
                     </td>
                 </tr>
@@ -94,9 +153,9 @@
                 </tr>
 
                 <tr class="more_table hide">
-                    <td>启用</td>
+                    <td>启用状态</td>
                     <td>
-                        <input type="checkbox" name="status"
+                        <input type="checkbox" name="status" lay-skin="primary" title="启用"
                         {[if $.Data]}{[if $.Data.Status]}checked{[end]}
                         {[else]}checked
                         {[end]}> 
@@ -109,7 +168,7 @@
 
         <div class="layui-form-item" style="text-align: center;">
             <input type="hidden" name="id" value="{[if $.Data]}{[$.Data.ID]}{[end]}">
-            <button class="layui-btn" lay-filter="submit_tg" lay-submit>保存</button>
+            <button class="layui-btn" lay-filter="submit_tg" lay-submit>保存菜单</button>
         </div>
     </form>
     </div>
@@ -125,6 +184,18 @@ var admin = layui.admin
 ,$ = layui.$
 ,form = layui.form
 ,table = layui.table;
+
+// 实时预览菜单名称
+$('.menu-name-input').on('input', function() {
+    var name = $(this).val();
+    if (name) {
+        $('#menu-preview-list .menu-item .menu-text').text(name);
+        $('#menu-preview-list .menu-item').css('opacity', '1');
+    } else {
+        $('#menu-preview-list .menu-item .menu-text').text('添加菜单后预览');
+        $('#menu-preview-list .menu-item').css('opacity', '0.6');
+    }
+});
 
 form.on("submit(submit_tg)", function(data){
     var index = layer.load();
