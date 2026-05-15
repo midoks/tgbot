@@ -21,15 +21,18 @@ func Home(c *gin.Context) {
 
 func Add(c *gin.Context) {
 	data := common.CommonVer(c)
-	data["id"] = c.Query("id")
-	if data["id"] != "" {
-		qid, err := strconv.ParseInt(data["id"].(string), 10, 64)
-		if err == nil {
-			tgbot_data, err := db.GetTgbotByID(qid)
-			if err == nil {
-				data["Data"] = tgbot_data
-			}
-		}
+	id := c.Query("id")
+	idint, _ := strconv.ParseInt(id, 10, 64)
+
+	data["id"] = id
+	tgbot_data, err := db.GetTgbotByID(idint)
+	if err == nil {
+		data["Data"] = tgbot_data
+	}
+
+	pushmenu_data, err := db.GetActiveTgbotPushMenu()
+	if err == nil {
+		data["PushMenu"] = pushmenu_data
 	}
 	c.HTML(http.StatusOK, "backend/tg/add.tmpl", data)
 }
@@ -57,14 +60,16 @@ func PostAdd(c *gin.Context) {
 	}
 
 	common_data := &model.Tgbot{
-		Name:         field.Name,
-		Mark:         field.Mark,
-		Token:        field.Token,
-		ProxyScheme:  field.ProxyScheme,
-		ProxyValue:   field.ProxyValue,
-		ListenEnable: field.ListenEnable,
-		Status:       field.Status,
-		CreateTime:   time.Now().Unix(),
+		Name:          field.Name,
+		Mark:          field.Mark,
+		Token:         field.Token,
+		ProxyScheme:   field.ProxyScheme,
+		ProxyValue:    field.ProxyValue,
+		ListenEnable:  field.ListenEnable,
+		MenuFreq:      field.MenuFreq,
+		MenuRelatedID: field.MenuRelatedID,
+		Status:        field.Status,
+		CreateTime:    time.Now().Unix(),
 	}
 
 	if field.ID != 0 {

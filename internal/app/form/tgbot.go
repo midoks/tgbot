@@ -11,11 +11,11 @@ type TgbotAdd struct {
 	ProxyValue   string `form:"proxy_value"`
 	ListenEnable bool   `form:"listen_enable"`
 
-	RelateMonitorGroupID int64 `form:"relate_monitor_group_id"`
+	MenuFreq      int64 `form:"menu_freq"`
+	MenuRelatedID int64 `form:"menu_related_id"`
 
-	Timeout int    `form:"timeout"` // timeout
-	Status  bool   `form:"status"`  // status
-	Mark    string `form:"mark"`    // mark
+	Status bool   `form:"status"` // status
+	Mark   string `form:"mark"`   // mark
 }
 
 type TgbotList struct {
