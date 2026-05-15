@@ -13,7 +13,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 VERSION="v0.1"
-REPO="midoks/mdserver-tgbot"
+REPO="midoks/tgbot"
 INSTALL_DIR="/opt/tgbot"
 DATA_DIR="${INSTALL_DIR}/custom/data"
 CONF_FILE="${INSTALL_DIR}/custom/conf"
