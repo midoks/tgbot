@@ -259,8 +259,15 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
 			_, err := bot.Request(deleteMsg)
 			if err != nil {
-				fmt.Printf("Failed to delete message %d from chat %d (matched: %q): %v\n",
-					update.Message.MessageID, update.Message.Chat.ID, matchedWord, err)
+				errStr := err.Error()
+				// 忽略消息已被删除的错误（可能已被用户删除或超过48小时）
+				if strings.Contains(errStr, "Bad Request: message can't be deleted") {
+					fmt.Printf("Message %d already deleted or can't be deleted (matched: %q)\n",
+						update.Message.MessageID, matchedWord)
+				} else {
+					fmt.Printf("Failed to delete message %d from chat %d (matched: %q): %v\n",
+						update.Message.MessageID, update.Message.Chat.ID, matchedWord, err)
+				}
 			} else {
 				fmt.Printf("Deleted message %d from chat %d (matched: %q)\n",
 					update.Message.MessageID, update.Message.Chat.ID, matchedWord)
@@ -268,12 +275,19 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		}()
 	} else if op == 2 {
 		go func() {
-			time.Sleep(30 * time.Second)
+			time.Sleep(3 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
 			_, err := bot.Request(deleteMsg)
 			if err != nil {
-				fmt.Printf("Failed to delete message %d from chat %d (signad user): %v\n",
-					update.Message.MessageID, update.Message.Chat.ID, err)
+				errStr := err.Error()
+				// 忽略消息已被删除的错误（可能已被用户删除或超过48小时）
+				if strings.Contains(errStr, "Bad Request: message can't be deleted") {
+					fmt.Printf("Message %d already deleted or can't be deleted (signad user)\n",
+						update.Message.MessageID)
+				} else {
+					fmt.Printf("Failed to delete message %d from chat %d (signad user): %v\n",
+						update.Message.MessageID, update.Message.Chat.ID, err)
+				}
 			} else {
 				fmt.Printf("Deleted message %d from chat %d (signad user)\n",
 					update.Message.MessageID, update.Message.Chat.ID)
