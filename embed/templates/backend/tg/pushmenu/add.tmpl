@@ -54,172 +54,640 @@
     display: none;
 }
 
-/* 菜单预览样式 */
-.menu-preview {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* 主布局 */
+.main-container {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 120px);
+}
+
+/* 左侧：Telegram 消息预览区域 */
+.preview-panel {
+    flex: 1;
+    background: #1a1a2e;
     border-radius: 12px;
     padding: 20px;
+    color: white;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.bot-info {
+    flex: 1;
+}
+
+.bot-name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.bot-status {
+    font-size: 12px;
+    color: #666;
+}
+
+/* 消息内容区域 */
+.message-content {
+    background: #2d2d44;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.message-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #e0e0e0;
+    white-space: pre-wrap;
+}
+
+/* 内联键盘预览 */
+.keyboard-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.keyboard-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.keyboard-btn {
+    flex: 1;
+    min-width: 120px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 15px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.keyboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.keyboard-btn:active {
+    transform: translateY(0);
+}
+
+/* 右侧编辑区域 */
+.edit-panel {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    overflow-y: auto;
+}
+
+.edit-panel h3 {
+    margin-bottom: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.section {
+    margin-bottom: 25px;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 12px;
+    padding-left: 10px;
+    border-left: 3px solid #667eea;
+}
+
+/* 按钮组样式 */
+.button-groups {
+    border: 1px dashed #ddd;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.button-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: move;
+    transition: all 0.2s ease;
+}
+
+.button-row:hover {
+    background: #f9f9f9;
+    border-radius: 6px;
+}
+
+.button-row.ui-sortable-helper {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: scale(1.02);
+}
+
+.button-row.ui-sortable-placeholder {
+    background: #e3f2fd;
+    border: 2px dashed #2196f3;
+    border-radius: 6px;
+    visibility: visible !important;
+}
+
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    color: #999;
+    font-size: 16px;
+    padding: 0 8px;
+    user-select: none;
+}
+
+.drag-handle:hover {
+    color: #667eea;
+}
+
+.button-row:last-child {
+    margin-bottom: 0;
+}
+
+.btn-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.btn-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn-url {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #666;
+}
+
+.btn-url:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.add-row-btn, .add-col-btn, .del-row-btn, .del-col-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.add-row-btn {
+    background: #52c41a;
     color: white;
 }
 
-.menu-preview h3 {
-    margin-bottom: 15px;
-    font-size: 16px;
-    font-weight: bold;
+.add-row-btn:hover {
+    background: #43a047;
 }
 
-.menu-item {
-    background: rgba(255, 255, 255, 0.2);
+.add-col-btn {
+    background: #1890ff;
+    color: white;
+}
+
+.add-col-btn:hover {
+    background: #096dd9;
+}
+
+.del-row-btn, .del-col-btn {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.del-row-btn:hover, .del-col-btn:hover {
+    background: #ff4d4f;
+    color: white;
+}
+
+/* 消息文本区域 */
+.message-textarea {
+    width: 100%;
+    height: 100px;
+    padding: 12px;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 10px;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.message-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* 操作按钮 */
+.action-buttons {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.menu-item:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateX(5px);
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.menu-item:last-child {
-    margin-bottom: 0;
-}
-
-.menu-item .menu-text {
-    flex: 1;
+.btn-reset {
+    background: #f5f5f5;
+    color: #666;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
     font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.menu-item .menu-arrow {
-    font-size: 18px;
+.btn-reset:hover {
+    background: #e8e8e8;
 }
 </style>
 <!-- start -->
 
 <div class="layui-fluid">
-    <!-- 菜单预览区域 -->
-    <div class="menu-preview">
-        <h3>📋 菜单预览</h3>
-        <div id="menu-preview-list">
-            {[if .Data]}
-            <div class="menu-item">
-                <span class="menu-text">{[.Data.Name]}</span>
-                <span class="menu-arrow">›</span>
+    <div class="main-container">
+        <!-- 左侧：Telegram 消息预览 -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <div class="avatar">🤖</div>
+                <div class="bot-info">
+                    <div class="bot-name">MW 专有机器人</div>
+                    <div class="bot-status">管理员</div>
+                </div>
             </div>
-            {[else]}
-            <div class="menu-item" style="opacity: 0.6;">
-                <span class="menu-text">添加菜单后预览</span>
-                <span class="menu-arrow">›</span>
+            
+            <div class="message-content">
+                <div class="message-text" id="preview-message">由于在解决的问题的时候，不给信息，无法了解情况。以后不再群里回答技术问题。全部去论坛提问。在解决问题的过程中，可能需要面板信息，和SSH信息，如无法提供请不要提问。为了让群里都知晓。轮播一年！
+为了不打扰双方，私聊解决问题先转1000U，否则无视!</div>
             </div>
-            {[end]}
+            
+            <div class="keyboard-preview" id="keyboard-preview">
+                <!-- 动态生成的内联键盘 -->
+            </div>
+        </div>
+
+        <!-- 右侧：编辑区域 -->
+        <div class="edit-panel">
+            <h3>✏️ 编辑 Telegram 菜单</h3>
+            
+            <!-- 消息文本 -->
+            <div class="section">
+                <div class="section-title">📝 消息内容</div>
+                <textarea class="message-textarea" id="message-input" placeholder="请输入消息内容...">由于在解决的问题的时候，不给信息，无法了解情况。以后不再群里回答技术问题。全部去论坛提问。在解决问题的过程中，可能需要面板信息，和SSH信息，如无法提供请不要提问。为了让群里都知晓。轮播一年！
+为了不打扰双方，私聊解决问题先转1000U，否则无视!</textarea>
+            </div>
+            
+            <!-- 内联键盘编辑 -->
+            <div class="section">
+                <div class="section-title">⌨️ 内联键盘按钮</div>
+                <div class="button-groups" id="button-groups">
+                    <div class="button-row">
+                        <div class="drag-handle" title="拖动排序">☰</div>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="海内外实名 KYC-执照代付✅域名">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/kuadugongzuoshi">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                    </div>
+                    <div class="button-row">
+                        <div class="drag-handle" title="拖动排序">☰</div>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="高价收一切流量 @caifutong555">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/caifutong555">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                    </div>
+                    <div class="button-row">
+                        <div class="drag-handle" title="拖动排序">☰</div>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="18+ 资源采集">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://ckzy1.com">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                    </div>
+                    <div class="button-row">
+                        <div class="drag-handle" title="拖动排序">☰</div>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="实名认证/过人脸🕵️‍♀️各种账号处理✅">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/niuniu234">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                    </div>
+                    <div class="button-row">
+                        <div class="drag-handle" title="拖动排序">☰</div>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="官网">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://github.com/midoks/mdserver-web">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="💎DigitalVirt(赞助商)">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://digitalvirt.com/aff.php?aff=154">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                    </div>
+                    <div class="button-row">
+                        <div class="drag-handle" title="拖动排序">☰</div>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="论坛">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="搜索">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu/search.php">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="@ME">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                        <input type="text" class="btn-input" placeholder="按钮文字" value="300RMB/月">
+                        <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
+                        <button class="del-col-btn" onclick="delCol(this)">×</button>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button class="add-row-btn" onclick="addRow()">+ 添加行</button>
+                    <button class="add-col-btn" onclick="addCol()">+ 添加列（到最后一行）</button>
+                    <button class="del-row-btn" onclick="delRow()">- 删除最后一行</button>
+                </div>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <button class="btn-reset" onclick="resetForm()">重置</button>
+                <button class="btn-save" onclick="saveMenu()">保存菜单</button>
+            </div>
         </div>
     </div>
-
-    <div class="layui-form toolbar layui-padding-3" style="margin-top: 10px;margin-bottom: 10px;">
-    <form class="layui-form layui-form-pane" onclick="return false;">
-        <table class="layui-table">
-            <colgroup><col width="150"><col></colgroup>
-            <tbody>
-                <tr>
-                    <td>菜单名称</td>
-                    <td>
-                        <div class="layui-input-inline">
-                            <input type="text" name="name" autocomplete="off" class="layui-input menu-name-input" value="{[if .Data]}{[.Data.Name]}{[end]}" placeholder="请输入菜单名称">
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>菜单内容</td>
-                    <td>
-                        <div class="layui-input-inline" style="width: 400px;">
-                            <textarea name="params" class="layui-textarea type-input menu-params-input" placeholder="请输入菜单内容，支持换行">{[if .Data]}{[.Data.Params]}{[end]}</textarea>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td colspan="2">
-                        <a class="table_more mlink" target_class="more_table">
-                            <cite>更多选项</cite>
-                            <i class="layui-icon layui-icon-down layui-nav-more"></i>
-                        </a>
-                    </td>
-                </tr>
-
-                <tr class="more_table hide">
-                    <td>启用状态</td>
-                    <td>
-                        <input type="checkbox" name="status" lay-skin="primary" title="启用"
-                        {[if $.Data]}{[if $.Data.Status]}checked{[end]}
-                        {[else]}checked
-                        {[end]}> 
-                    </td>
-                </tr>
-                
-            </tbody>
-        </table>
-
-
-        <div class="layui-form-item" style="text-align: center;">
-            <input type="hidden" name="id" value="{[if $.Data]}{[$.Data.ID]}{[end]}">
-            <button class="layui-btn" lay-filter="submit_tg" lay-submit>保存菜单</button>
-        </div>
-    </form>
-    </div>
-
 </div>
 
-
 <script type="text/javascript">
+layui.config({base: '/static/layuiadmin/'}).use(['jquery'], function(){
+    var $ = layui.$;
 
-layui.config({base: '/static/layuiadmin/'}).use(['table','jquery'], function(){
-///
-var admin = layui.admin
-,$ = layui.$
-,form = layui.form
-,table = layui.table;
+    // 初始化拖动排序
+    $('#button-groups').sortable({
+        handle: '.drag-handle',
+        placeholder: 'ui-sortable-placeholder',
+        tolerance: 'pointer',
+        cursor: 'move',
+        axis: 'y',
+        update: function(event, ui) {
+            updatePreview();
+        }
+    });
 
-// 实时预览菜单名称
-$('.menu-name-input').on('input', function() {
-    var name = $(this).val();
-    if (name) {
-        $('#menu-preview-list .menu-item .menu-text').text(name);
-        $('#menu-preview-list .menu-item').css('opacity', '1');
-    } else {
-        $('#menu-preview-list .menu-item .menu-text').text('添加菜单后预览');
-        $('#menu-preview-list .menu-item').css('opacity', '0.6');
-    }
-});
+    // 初始化预览
+    updatePreview();
 
-form.on("submit(submit_tg)", function(data){
-    var index = layer.load();
-    var field = data.field;
+    // 监听消息输入变化
+    $('#message-input').on('input', function() {
+        updatePreview();
+    });
 
-    if (field['status'] == "on"){
-        field['status'] = 1;
-    } else {
-        field['status'] = 0;
-    }
+    // 监听按钮输入变化
+    $(document).on('input', '.btn-input, .btn-url', function() {
+        updatePreview();
+    });
 
-    $.post("/{[$.admin_path]}/tg/pushmenu/add", field, function(res) {
-        showMsg(res.msg, function(){
-            layer.close(index);
-            if(res.code > -1){
-                parent.location.reload();
+    // 更新预览
+    function updatePreview() {
+        // 更新消息预览
+        var message = $('#message-input').val();
+        $('#preview-message').text(message);
+        
+        // 更新键盘预览
+        var rows = $('.button-row');
+        var html = '';
+        
+        rows.each(function() {
+            var inputs = $(this).find('.btn-input');
+            var urls = $(this).find('.btn-url');
+            var hasContent = false;
+            
+            var rowHtml = '<div class="keyboard-row">';
+            inputs.each(function(index) {
+                var text = $(this).val();
+                var url = urls.eq(index).val();
+                if (text) {
+                    hasContent = true;
+                    rowHtml += `<button class="keyboard-btn" onclick="openUrl('${url}')">${text}</button>`;
+                }
+            });
+            rowHtml += '</div>';
+            
+            if (hasContent) {
+                html += rowHtml;
             }
-        },{icon: res.code > -1 ? 1 : 2,shift:res.code>-1 ? 0 : 6});
-    },'json');
-    return false;
-});
+        });
+        
+        $('#keyboard-preview').html(html);
+    }
 
+    // 打开链接
+    window.openUrl = function(url) {
+        if (url && url != 'tg://user?id=' && url != 'tg://user?id=5568699210') {
+            window.open(url, '_blank');
+        }
+    }
 
-///
+    // 添加行
+    window.addRow = function() {
+        var html = `
+            <div class="button-row">
+                <div class="drag-handle" title="拖动排序">☰</div>
+                <input type="text" class="btn-input" placeholder="按钮文字">
+                <input type="text" class="btn-url" placeholder="URL 链接">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            </div>
+        `;
+        $('#button-groups').append(html);
+        updatePreview();
+    }
+
+    // 添加列到最后一行
+    window.addCol = function() {
+        var rows = $('.button-row');
+        if (rows.length > 0) {
+            var lastRow = rows.last();
+            var html = `
+                <input type="text" class="btn-input" placeholder="按钮文字">
+                <input type="text" class="btn-url" placeholder="URL 链接">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            `;
+            lastRow.append(html);
+            updatePreview();
+        }
+    }
+
+    // 删除列
+    window.delCol = function(el) {
+        var row = $(el).closest('.button-row');
+        var cols = row.find('.btn-input').length;
+        if (cols > 1) {
+            $(el).prev().remove(); // 删除URL输入框
+            $(el).prev().remove(); // 删除文字输入框
+            $(el).remove();        // 删除按钮
+            updatePreview();
+        }
+    }
+
+    // 删除最后一行
+    window.delRow = function() {
+        var rows = $('.button-row');
+        if (rows.length > 1) {
+            rows.last().remove();
+            updatePreview();
+        }
+    }
+
+    // 重置表单
+    window.resetForm = function() {
+        $('#message-input').val('由于在解决的问题的时候，不给信息，无法了解情况。以后不再群里回答技术问题。全部去论坛提问。在解决问题的过程中，可能需要面板信息，和 SSH 信息，如无法提供请不要提问。为了让群里都知晓。轮播一年！\n为了不打扰双方，私聊解决问题先转 1000U，否则无视!');
+        
+        var html = `
+            <div class="button-row">
+                <div class="drag-handle" title="拖动排序">☰</div>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="海内外实名 KYC-执照代付✅域名">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/kuadugongzuoshi">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            </div>
+            <div class="button-row">
+                <div class="drag-handle" title="拖动排序">☰</div>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="高价收一切流量 @caifutong555">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/caifutong555">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            </div>
+            <div class="button-row">
+                <div class="drag-handle" title="拖动排序">☰</div>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="18+ 资源采集">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://ckzy1.com">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            </div>
+            <div class="button-row">
+                <div class="drag-handle" title="拖动排序">☰</div>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="实名认证/过人脸🕵️‍♀️各种账号处理✅">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://t.me/niuniu234">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            </div>
+            <div class="button-row">
+                <div class="drag-handle" title="拖动排序">☰</div>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="官网">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://github.com/midoks/mdserver-web">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="💎DigitalVirt(赞助商)">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://digitalvirt.com/aff.php?aff=154">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            </div>
+            <div class="button-row">
+                <div class="drag-handle" title="拖动排序">☰</div>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="论坛">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="搜索">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="https://bbs.midoks.icu/search.php">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="@ME">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+                <input type="text" class="btn-input" placeholder="按钮文字" value="300RMB/月">
+                <input type="text" class="btn-url" placeholder="URL 链接" value="tg://user?id=5568699210">
+                <button class="del-col-btn" onclick="delCol(this)">×</button>
+            </div>
+        `;
+        $('#button-groups').html(html);
+        updatePreview();
+    }
+
+    // 保存菜单
+    window.saveMenu = function() {
+        var message = $('#message-input').val();
+        var keyboard = [];
+        
+        $('.button-row').each(function() {
+            var row = [];
+            var inputs = $(this).find('.btn-input');
+            var urls = $(this).find('.btn-url');
+            
+            inputs.each(function(index) {
+                var text = $(this).val().trim();
+                var url = urls.eq(index).val().trim();
+                if (text && url) {
+                    row.push({
+                        text: text,
+                        url: url
+                    });
+                }
+            });
+            
+            if (row.length > 0) {
+                keyboard.push(row);
+            }
+        });
+        
+        var data = {
+            name: 'Telegram 菜单',
+            params: JSON.stringify({
+                message: message,
+                keyboard: keyboard
+            }),
+            status: 1
+        };
+        
+        $.post("/{[$.admin_path]}/tg/pushmenu/add", data, function(res) {
+            showMsg(res.msg, function(){
+                if(res.code > -1){
+                    layer.msg('菜单保存成功！', {icon: 1});
+                }
+            },{icon: res.code > -1 ? 1 : 2,shift:res.code>-1 ? 0 : 6});
+        }, 'json');
+    }
 });
 </script>
 
