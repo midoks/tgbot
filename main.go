@@ -16,7 +16,7 @@ import (
 const (
 	Version = "0.1"
 	AppName = "tgbot"
-	CodeDev = true
+	CodeDev = false
 )
 
 func init() {
