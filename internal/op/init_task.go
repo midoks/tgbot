@@ -3,8 +3,6 @@ package op
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
-	"strings"
 	"time"
 
 	"tgbot/internal/db"
@@ -103,105 +101,10 @@ func InitTelegramTask() {
 	InitMenuPushTasks()
 }
 
-type DomainEntry struct {
-	Remark string
-	URL    string
-}
-
-// ParseDomainEntries 解析域名数据
-func ParseDomainEntries(text string) ([]DomainEntry, error) {
-	var entries []DomainEntry
-	var currentRemark string
-
-	lines := strings.Split(text, "\n")
-	urlPattern := regexp.MustCompile(`^https?://`)
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-
-		if line == "" {
-			continue
-		}
-
-		if strings.Contains(line, "=========================") {
-			currentRemark = ""
-			continue
-		}
-
-		// 检查这一行是否是 URL（以 http:// 或 https:// 开头）
-		cleanLine := strings.Trim(line, "`")
-		if urlPattern.MatchString(cleanLine) {
-			if currentRemark != "" {
-				entries = append(entries, DomainEntry{
-					Remark: currentRemark,
-					URL:    cleanLine,
-				})
-				currentRemark = ""
-			}
-		} else if strings.Contains(line, ":") || strings.Contains(line, "：") {
-			// 这一行可能是备注行（支持英文和中文冒号）
-			colonIndex := strings.Index(line, ":")
-			if colonIndex == -1 {
-				colonIndex = strings.Index(line, "：")
-			}
-			if colonIndex != -1 {
-				remark := strings.TrimSpace(line[:colonIndex])
-				rest := strings.TrimSpace(line[colonIndex+1:])
-
-				// 移除反引号
-				rest = strings.Trim(rest, "`")
-
-				if urlPattern.MatchString(rest) {
-					// 备注和 URL 在同一行
-					entries = append(entries, DomainEntry{
-						Remark: remark,
-						URL:    rest,
-					})
-					currentRemark = ""
-				} else {
-					// 这是备注行，URL 在下一行
-					currentRemark = remark
-				}
-			}
-		}
-	}
-
-	return entries, nil
-}
-
-func CreateMonitorsFromText(text string, gid int64) (successCount, failCount int, err error) {
-	entries, err := ParseDomainEntries(text)
-
-	if err != nil {
-		return 0, 0, err
-	}
-
-	if len(entries) == 0 {
-		return 0, 0, nil
-	}
-
-	successCount = len(entries)
-	return successCount, failCount, nil
-}
-
-func CreateMonitorsFromTextAppend(text string, gid int64) (successCount, failCount int, err error) {
-	entries, err := ParseDomainEntries(text)
-
-	if err != nil {
-		return 0, 0, err
-	}
-
-	if len(entries) == 0 {
-		return 0, 0, nil
-	}
-
-	successCount = len(entries)
-	return successCount, failCount, nil
-}
-
 // MenuPushTask 菜单推送任务
 type MenuPushTask struct {
 	botID     int64
+	chatID    int64 // 目标聊天/群 ID
 	menu      model.TgbotPushMenu
 	freq      int64 // 推送频率（秒）
 	stopChan  chan struct{}
@@ -209,9 +112,10 @@ type MenuPushTask struct {
 }
 
 // StartMenuPushTask 启动菜单推送任务
-func StartMenuPushTask(botID int64, menu model.TgbotPushMenu, freq int64) *MenuPushTask {
+func StartMenuPushTask(botID int64, chatID int64, menu model.TgbotPushMenu, freq int64) *MenuPushTask {
 	task := &MenuPushTask{
 		botID:     botID,
+		chatID:    chatID,
 		menu:      menu,
 		freq:      freq,
 		stopChan:  make(chan struct{}),
@@ -261,7 +165,7 @@ func (t *MenuPushTask) pushMenu() {
 	manager := tgtask.GetManager()
 	botInstance := manager.GetBot(t.botID)
 	if botInstance == nil || botInstance.BotAPI == nil {
-		fmt.Printf("Bot %d not found\n", t.botID)
+		fmt.Printf("[MenuPush] Bot %d not found or not ready, retrying next cycle\n", t.botID)
 		return
 	}
 
@@ -282,24 +186,23 @@ func (t *MenuPushTask) pushMenu() {
 	// 创建内联键盘标记
 	markup := tgbotapi.NewInlineKeyboardMarkup(inlineKeyboard...)
 
-	// 这里需要获取要推送的聊天 ID，可以从配置中读取或者从数据库获取
-	// 暂时先打印日志
-	fmt.Printf("Pushing menu to bot %d: %s\n", t.botID, menuData.Message)
+	// 检查目标聊天 ID 是否有效
+	if t.chatID == 0 {
+		fmt.Printf("Bot %d has no target chat ID configured\n", t.botID)
+		return
+	}
 
-	// 实际推送逻辑需要根据具体需求实现
-	// 例如：推送到特定的群组或频道
-	chatIDs := []int64{} // 从配置或数据库获取
+	// 发送消息到指定的聊天/群
+	fmt.Printf("Pushing menu to bot %d, chat %d: %s\n", t.botID, t.chatID, menuData.Message)
 
-	for _, chatID := range chatIDs {
-		msg := tgbotapi.NewMessage(chatID, menuData.Message)
-		msg.ReplyMarkup = markup
+	msg := tgbotapi.NewMessage(t.chatID, menuData.Message)
+	msg.ReplyMarkup = markup
 
-		_, err := botInstance.BotAPI.Send(msg)
-		if err != nil {
-			fmt.Printf("Failed to send menu to chat %d: %v\n", chatID, err)
-		} else {
-			fmt.Printf("Menu sent to chat %d successfully\n", chatID)
-		}
+	_, err := botInstance.BotAPI.Send(msg)
+	if err != nil {
+		fmt.Printf("Failed to send menu to chat %d: %v\n", t.chatID, err)
+	} else {
+		fmt.Printf("Menu sent to chat %d successfully\n", t.chatID)
 	}
 }
 
@@ -324,7 +227,7 @@ func InitMenuPushTasks() {
 
 	// 为每个 bot 启动菜单推送任务
 	for _, botData := range botList {
-		if botData.MenuRelatedID > 0 && botData.MenuFreq > 0 {
+		if botData.MenuRelatedID > 0 && botData.MenuFreq > 0 && botData.MenuSendID != 0 {
 			// 获取关联的菜单
 			menu, err := db.GetTgbotPushMenuByID(botData.MenuRelatedID)
 			if err != nil {
@@ -337,11 +240,11 @@ func InitMenuPushTasks() {
 				continue
 			}
 
-			fmt.Printf("Starting menu push task for bot %d with menu %d, freq %d seconds\n",
-				botData.ID, menu.ID, botData.MenuFreq)
+			fmt.Printf("Starting menu push task for bot %d with menu %d, chat %d, freq %d seconds\n",
+				botData.ID, menu.ID, botData.MenuSendID, botData.MenuFreq)
 
 			// 启动推送任务
-			StartMenuPushTask(botData.ID, *menu, botData.MenuFreq)
+			StartMenuPushTask(botData.ID, botData.MenuSendID, *menu, botData.MenuFreq)
 		}
 	}
 }
