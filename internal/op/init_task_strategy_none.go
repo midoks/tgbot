@@ -275,7 +275,7 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		}()
 	} else if op == 2 {
 		go func() {
-			time.Sleep(3 * time.Second)
+			time.Sleep(60 * time.Second)
 			deleteMsg := tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID)
 			_, err := bot.Request(deleteMsg)
 			if err != nil {

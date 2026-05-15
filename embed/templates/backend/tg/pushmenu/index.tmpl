@@ -1,0 +1,114 @@
+{[template "backend/common/header.tmpl" .]}
+
+<div class="layui-fluid">
+    <div class="layui-col-md12" style="padding: 5px;">
+        <div class="layui-card">
+            <div class="layui-card-body">
+
+                <div class="layui-form toolbar" style="margin-top: 10px;margin-bottom: 10px;">
+                <form class="layui-form" action="" id="tgbot_banword_form" onclick="return false;">
+
+                    <button type="button" class="layui-btn layui-btn-sm" onclick="Admin.open('添加','/{[$.admin_path]}/tg/signad/add',600,400)">
+                        <i class="layui-icon layui-icon-add-circle"></i> 添加
+                    </button>
+
+                    <div class="layui-inline mr0">
+                        <div class="layui-input-inline mr0">
+                            <input type="text" name="key" placeholder="关键词" autocomplete="off" class="layui-input h30" value="">
+                        </div>
+                    </div>
+
+                    <div class="layui-inline mr0">
+                        <button class="layui-btn layui-btn-sm" id="table-sreach" data-id="list" lay-submit lay-filter="table-sreach"><i class="layui-icon">&#xe615;</i>搜索
+                        </button>
+                    </div>
+                </form>
+                </div>
+
+                <div id="list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+layui.config({base: '/static/layuiadmin/'}).use(['table','jquery','layer'], function(){
+///
+var admin = layui.admin
+,$ = layui.$
+,form = layui.form
+,table = layui.table
+,layer = layui.layer;
+
+var tableIns, tableData = [];
+
+function renderTable(){
+    // 获取表单参数
+    var where_data = $('#tgbot_banword_form').serializeArray();
+    where_data = array2arr(where_data);
+    
+    tableIns = table.render({
+        elem: '#list',
+        url: '/{[.admin_path]}/tg/signad/list',
+        where: where_data,
+        title: '消息日志',
+        cols: [[
+            {field:'id', title:'ID'},
+            {field:'user_id', title:'用户ID'},
+            {field:'from_user_name', title:'用户名称'},
+            {field:'status', title:'状态', toolbar:"#statusTpl",width:80},
+            {field:'update_time', title:'更新时间', width:185, templet: function(d){return layui.util.toDateString(d.update_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
+            {field:'create_time', title:'创建时间', width:185, templet: function(d){return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');}},
+            {title:'操作', toolbar: '#cmdTpl', width:130, fixed: 'right'}
+        ]],
+        page: true,
+        done: function(res, curr, count){
+            // 表格渲染完成后的回调
+        }
+    });
+
+}
+
+renderTable();
+
+// search
+form.on('submit(table-sreach)', function(){
+    renderTable();
+    return false;
+});
+
+table.on('tool(list)', function(obj){
+    switch(obj.event){
+        case 'status':opStatus(obj);break;
+    };
+});
+
+function opStatus(obj){
+    $.post('/{[.admin_path]}/tg/signad/trigger_status', {"id":obj.data.id}, function(data) {
+        showMsg(data.msg,function(){
+            if (data.code>-1){
+                location.reload();
+            }
+        },{icon:data.code>-1?1:2});
+    },'json');
+}
+
+///
+});
+</script>
+
+<script type="text/html" id="statusTpl">
+{{# if (d.status == 1){ }}
+<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="status">已启用</a>
+{{# } else if (d.status == 0) { }}
+<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="status">已暂停</a>
+{{# } }}
+</script>
+
+<script type="text/html" id="cmdTpl">
+<a class="layui-btn layui-btn-xs" lay-event='edit' onclick="Admin.open('修改','/{[$.admin_path]}/tg/signad/add?id={{d.id}}',600,400)">修改</a>
+<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event='delete' onclick="Admin.del(this, '/{[$.admin_path]}/tg/signad/delete','{{d.id}}','{{d.bot_id}}')">删除</a>
+</script>
+
+{[template "backend/common/footer.tmpl" .]}

@@ -14,44 +14,43 @@ import (
 	"tgbot/internal/op"
 )
 
-func Signad(c *gin.Context) {
+func Pushmenu(c *gin.Context) {
 	data := common.CommonVer(c)
-	c.HTML(http.StatusOK, "backend/tg/signad/index.tmpl", data)
+	c.HTML(http.StatusOK, "backend/tg/pushmenu/index.tmpl", data)
 }
 
-func SignadAdd(c *gin.Context) {
+func PushmenuAdd(c *gin.Context) {
 	id := c.Query("id")
 	idint, _ := strconv.ParseInt(id, 10, 64)
 
 	data := common.CommonVer(c)
 	data["id"] = id
 
-	banword_data, err := db.GetTgbotSignadByID(idint)
+	banword_data, err := db.GetTgbotBanwordByID(idint)
 	if err == nil {
 		data["Data"] = banword_data
 	}
-	c.HTML(http.StatusOK, "backend/tg/signad/add.tmpl", data)
+	c.HTML(http.StatusOK, "backend/tg/banword/add.tmpl", data)
 }
 
-func PostSignadAdd(c *gin.Context) {
-	var field form.TgbotSignAd
+func PostPushmenuAdd(c *gin.Context) {
+	var field form.TgbotBanwordAdd
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
 
-	common_data := &model.TgbotSignAd{
-		UserID:       field.UserID,
-		FromUserName: field.FromUserName,
-		Status:       field.Status,
-		CreateTime:   time.Now().Unix(),
+	common_data := &model.TgbotBanWord{
+		Word:       field.Word,
+		Status:     field.Status,
+		CreateTime: time.Now().Unix(),
 	}
 
 	if field.ID > 0 {
-		_, err := db.GetTgbotSignadByID(field.ID)
+		_, err := db.GetTgbotBanwordByID(field.ID)
 		if err == nil {
 			common_data.UpdateTime = time.Now().Unix()
-			if err := db.GetDb().Model(&model.TgbotSignAd{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
+			if err := db.GetDb().Model(&model.TgbotBanWord{}).Where("id = ?", field.ID).Updates(common_data).Error; err != nil {
 				common.ErrorResp(c, err, -1)
 				return
 			}
@@ -65,18 +64,18 @@ func PostSignadAdd(c *gin.Context) {
 
 	}
 
-	op.ClearSignadCache()
+	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }
 
-func TgbotSignadList(c *gin.Context) {
+func TgbotPushmenuList(c *gin.Context) {
 	var field form.TgbotList
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
 
-	result, count, err := db.GetTgbotSignadListByArgs(field)
+	result, count, err := db.GetTgbotBanwordListByArgs(field)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return
@@ -84,7 +83,7 @@ func TgbotSignadList(c *gin.Context) {
 	common.SuccessLayuiResp(c, count, "ok", result)
 }
 
-func TgbotSignadTriggerStatus(c *gin.Context) {
+func TgbotPushmenuTriggerStatus(c *gin.Context) {
 	var field form.ID
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
@@ -96,22 +95,22 @@ func TgbotSignadTriggerStatus(c *gin.Context) {
 		common.ErrorResp(c, err, -1)
 		return
 	}
-	op.ClearSignadCache()
+	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }
 
-func TgbotSignadDelete(c *gin.Context) {
+func TgbotPushmenuDelete(c *gin.Context) {
 	var field form.ID
 	if err := c.ShouldBind(&field); err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
 
-	err := db.DeleteTgbotSignadByID(field.ID)
+	err := db.DeleteTgbotBanwordByID(field.ID)
 	if err != nil {
 		common.ErrorResp(c, err, -1)
 		return
 	}
-	op.ClearSignadCache()
+	op.ClearBanwordsCache()
 	common.SuccessResp(c)
 }

@@ -21,6 +21,17 @@
                 ]
             },
             {
+                "code": "tg_pushmenu",
+                "name": "推广菜单管理",
+                "path": "/tg/pushmenu",
+                "subapi":[
+                    {
+                        "code":"tg_pushmenu",
+                        "path": "/tg/pushmenu"
+                    }
+                ]
+            },
+            {
                 "code": "tg_banword",
                 "name": "封禁关键词",
                 "path": "/tg/banword",

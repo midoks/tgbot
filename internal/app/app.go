@@ -181,8 +181,15 @@ func initRuoteAdmin(r *gin.Engine) {
 	backstage_admin.GET("/tg/signad/add", backend_tg.SignadAdd)
 	backstage_admin.POST("/tg/signad/add", backend_tg.PostSignadAdd)
 	backstage_admin.POST("/tg/signad/trigger_status", backend_tg.TgbotSignadTriggerStatus)
-	backstage_admin.GET("/tg/signad/list", backend_tg.SignadList)
+	backstage_admin.GET("/tg/signad/list", backend_tg.TgbotSignadList)
 	backstage_admin.POST("/tg/signad/delete", backend_tg.TgbotSignadDelete)
+
+	backstage_admin.GET("/tg/pushmenu", backend_tg.Pushmenu)
+	backstage_admin.GET("/tg/pushmenu/add", backend_tg.PushmenuAdd)
+	backstage_admin.POST("/tg/pushmenu/add", backend_tg.PostPushmenuAdd)
+	backstage_admin.POST("/tg/pushmenu/trigger_status", backend_tg.TgbotPushmenuTriggerStatus)
+	backstage_admin.GET("/tg/pushmenu/list", backend_tg.TgbotPushmenuList)
+	backstage_admin.POST("/tg/pushmenu/delete", backend_tg.TgbotPushmenuDelete)
 
 }
 
