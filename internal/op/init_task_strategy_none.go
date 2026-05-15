@@ -234,6 +234,11 @@ func logAndPrintMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		op = 2
 	}
 
+	// 发联系信息删除
+	if msgInfo.MsgType == "contact" {
+		op = 1
+	}
+
 	// 记录消息到日志
 	go db.AddTgbotLog(
 		bot.Self.ID,
