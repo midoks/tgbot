@@ -3,10 +3,12 @@ package op
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"tgbot/internal/db"
 	"tgbot/internal/model"
+	"tgbot/internal/notify"
 	"tgbot/internal/tgtask"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -101,52 +103,19 @@ func InitTelegramTask() {
 	InitMenuPushTasks()
 }
 
-// MenuPushTask 菜单推送任务
-type MenuPushTask struct {
-	botID     int64
-	chatID    int64 // 目标聊天/群 ID
-	menu      model.TgbotPushMenu
-	freq      int64 // 推送频率（秒）
-	stopChan  chan struct{}
-	isRunning bool
-}
-
-// StartMenuPushTask 启动菜单推送任务
-func StartMenuPushTask(botID int64, chatID int64, menu model.TgbotPushMenu, freq int64) *MenuPushTask {
-	task := &MenuPushTask{
-		botID:     botID,
-		chatID:    chatID,
-		menu:      menu,
-		freq:      freq,
-		stopChan:  make(chan struct{}),
-		isRunning: true,
+// PushMenuOnce 推送菜单一次
+func PushMenuOnce(botData model.Tgbot, menu model.TgbotPushMenu) {
+	// 检查配置是否完整
+	if botData.MenuSendID == 0 {
+		fmt.Printf("[MenuPush] Bot %d: No target chat ID configured\n", botData.ID)
+		return
 	}
 
-	go task.run()
-	return task
-}
-
-// run 运行推送任务
-func (t *MenuPushTask) run() {
-	ticker := time.NewTicker(time.Duration(t.freq) * time.Second)
-	defer ticker.Stop()
-
-	// 立即执行一次
-	t.pushMenu()
-
-	for {
-		select {
-		case <-ticker.C:
-			t.pushMenu()
-		case <-t.stopChan:
-			fmt.Printf("Menu push task for bot %d stopped\n", t.botID)
-			return
-		}
+	if botData.Token == "" {
+		fmt.Printf("[MenuPush] Bot %d: No token configured\n", botData.ID)
+		return
 	}
-}
 
-// pushMenu 推送菜单
-func (t *MenuPushTask) pushMenu() {
 	// 解析菜单数据
 	var menuData struct {
 		Message  string `json:"message"`
@@ -156,16 +125,26 @@ func (t *MenuPushTask) pushMenu() {
 		} `json:"keyboard"`
 	}
 
-	if err := json.Unmarshal([]byte(t.menu.Params), &menuData); err != nil {
-		fmt.Printf("Failed to parse menu params for bot %d: %v\n", t.botID, err)
+	if err := json.Unmarshal([]byte(menu.Params), &menuData); err != nil {
+		fmt.Printf("[MenuPush] Bot %d: Failed to parse menu params: %v\n", botData.ID, err)
 		return
 	}
 
-	// 获取 bot 实例
-	manager := tgtask.GetManager()
-	botInstance := manager.GetBot(t.botID)
-	if botInstance == nil || botInstance.BotAPI == nil {
-		fmt.Printf("[MenuPush] Bot %d not found or not ready, retrying next cycle\n", t.botID)
+	// 构建代理字符串
+	proxy := ""
+	if botData.ProxyScheme != "" && botData.ProxyValue != "" {
+		proxy = botData.ProxyScheme + "://" + botData.ProxyValue
+	}
+
+	// 使用 notify 包创建通知实例
+	notification, err := notify.NewNotification(botData.Token, botData.MenuSendID, proxy, true)
+	if err != nil {
+		fmt.Printf("[MenuPush] Bot %d: Failed to create notification: %v\n", botData.ID, err)
+		return
+	}
+
+	if !notification.Enabled {
+		fmt.Printf("[MenuPush] Bot %d: Notification is not enabled\n", botData.ID)
 		return
 	}
 
@@ -186,65 +165,60 @@ func (t *MenuPushTask) pushMenu() {
 	// 创建内联键盘标记
 	markup := tgbotapi.NewInlineKeyboardMarkup(inlineKeyboard...)
 
-	// 检查目标聊天 ID 是否有效
-	if t.chatID == 0 {
-		fmt.Printf("Bot %d has no target chat ID configured\n", t.botID)
-		return
-	}
-
 	// 发送消息到指定的聊天/群
-	fmt.Printf("Pushing menu to bot %d, chat %d: %s\n", t.botID, t.chatID, menuData.Message)
+	fmt.Printf("[MenuPush] Bot %d, Chat %d: Sending menu...\n", botData.ID, botData.MenuSendID)
 
-	msg := tgbotapi.NewMessage(t.chatID, menuData.Message)
+	msg := tgbotapi.NewMessage(botData.MenuSendID, menuData.Message)
 	msg.ReplyMarkup = markup
 
-	_, err := botInstance.BotAPI.Send(msg)
+	_, err = notification.TelegramBot().Send(msg)
 	if err != nil {
-		fmt.Printf("Failed to send menu to chat %d: %v\n", t.chatID, err)
+		errStr := err.Error()
+		fmt.Printf("[MenuPush] Bot %d, Chat %d: Failed to send menu: %v\n", botData.ID, botData.MenuSendID, err)
+
+		// 添加常见错误提示
+		if strings.Contains(errStr, "chat not found") {
+			fmt.Printf("[MenuPush] HINT: Please ensure the bot is added to the group/channel and has permission to send messages\n")
+		} else if strings.Contains(errStr, "bot was kicked") {
+			fmt.Printf("[MenuPush] HINT: The bot has been kicked from the chat\n")
+		} else if strings.Contains(errStr, "not a member") {
+			fmt.Printf("[MenuPush] HINT: The bot is not a member of the chat\n")
+		}
 	} else {
-		fmt.Printf("Menu sent to chat %d successfully\n", t.chatID)
+		fmt.Printf("[MenuPush] Bot %d, Chat %d: Menu sent successfully\n", botData.ID, botData.MenuSendID)
 	}
 }
 
-// Stop 停止推送任务
-func (t *MenuPushTask) Stop() {
-	if t.isRunning {
-		close(t.stopChan)
-		t.isRunning = false
-	}
-}
-
-// InitMenuPushTasks 初始化所有菜单推送任务
+// InitMenuPushTasks 初始化所有菜单推送任务（一次性推送）
 func InitMenuPushTasks() {
-	fmt.Println("InitMenuPushTasks")
+	fmt.Println("[MenuPush] Initializing menu push tasks")
 
-	// 获取所有激活的 bot
+	// 获取所有 bot
 	botList, err := db.GetTgbotAll()
 	if err != nil {
-		fmt.Printf("Failed to get bot list: %v\n", err)
+		fmt.Printf("[MenuPush] Failed to get bot list: %v\n", err)
 		return
 	}
 
-	// 为每个 bot 启动菜单推送任务
+	// 为每个配置了菜单推送的 bot 执行一次推送
 	for _, botData := range botList {
-		if botData.MenuRelatedID > 0 && botData.MenuFreq > 0 && botData.MenuSendID != 0 {
+		if botData.MenuRelatedID > 0 && botData.MenuSendID != 0 {
 			// 获取关联的菜单
 			menu, err := db.GetTgbotPushMenuByID(botData.MenuRelatedID)
 			if err != nil {
-				fmt.Printf("Failed to get menu %d for bot %d: %v\n", botData.MenuRelatedID, botData.ID, err)
+				fmt.Printf("[MenuPush] Failed to get menu %d for bot %d: %v\n", botData.MenuRelatedID, botData.ID, err)
 				continue
 			}
 
 			if !menu.Status {
-				fmt.Printf("Menu %d is not active, skipping\n", menu.ID)
+				fmt.Printf("[MenuPush] Menu %d is not active, skipping bot %d\n", menu.ID, botData.ID)
 				continue
 			}
 
-			fmt.Printf("Starting menu push task for bot %d with menu %d, chat %d, freq %d seconds\n",
-				botData.ID, menu.ID, botData.MenuSendID, botData.MenuFreq)
+			fmt.Printf("[MenuPush] Pushing menu %d for bot %d to chat %d\n", menu.ID, botData.ID, botData.MenuSendID)
 
-			// 启动推送任务
-			StartMenuPushTask(botData.ID, botData.MenuSendID, *menu, botData.MenuFreq)
+			// 执行一次推送
+			PushMenuOnce(botData, *menu)
 		}
 	}
 }

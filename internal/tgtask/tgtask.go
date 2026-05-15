@@ -40,7 +40,12 @@ func init() {
 	}
 }
 
-func GetBotByProxy(token, proxyURL string) (bot *tgbotapi.BotAPI, err error) {
+// CreateBotWithProxy 创建带代理的 Telegram Bot 实例（导出函数，供外部包使用）
+func CreateBotWithProxy(token, proxyURL string) (*tgbotapi.BotAPI, error) {
+	return getBotByProxy(token, proxyURL)
+}
+
+func getBotByProxy(token, proxyURL string) (bot *tgbotapi.BotAPI, err error) {
 	if proxyURL != "" {
 		u, parseErr := url.Parse(proxyURL)
 		if parseErr == nil {
@@ -121,7 +126,7 @@ func (m *Manager) AddBot(id int64, token, proxyURL string, chatID int64, handler
 
 	var err error
 	var bot *tgbotapi.BotAPI
-	bot, err = GetBotByProxy(token, proxyURL)
+	bot, err = getBotByProxy(token, proxyURL)
 	if err != nil {
 		log.Infof("creating bot with token: %s, proxy: %s", token, proxyURL)
 		log.Errorf("creating bot error: %v", err)
