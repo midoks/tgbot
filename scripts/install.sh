@@ -100,7 +100,7 @@ show_info() {
     echo -e "  配置文件: ${CONF_FILE}"
     echo ""
     echo -e "${YELLOW}访问地址:${NC}"
-    echo -e "  http://$(hostname -I | awk '{print $1}'):9191"
+    echo -e "  http://$(hostname -I | awk '{print $1}'):9393"
     echo ""
     echo -e "${YELLOW}服务管理:${NC}"
     echo -e "  启动: systemctl start ${SERVICE_NAME}"
