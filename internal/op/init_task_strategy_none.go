@@ -394,6 +394,62 @@ func clearVerification(userID int64) {
 	delete(verificationCache, userID)
 }
 
+// startCountdown 启动实时倒计时，每秒更新验证消息
+func startCountdown(bot *tgbotapi.BotAPI, chatID int64, userID int64, messageID int, expireTime time.Time, num1, num2 int, userName string) {
+	ticker := time.NewTicker(5 * time.Second) // 改为5秒更新一次，避免触发API限流
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			// 检查用户是否已完成验证或验证已被清除
+			verificationCacheMu.RLock()
+			_, exists := verificationCache[userID]
+			verificationCacheMu.RUnlock()
+
+			if !exists {
+				fmt.Printf("用户 %d 验证已完成或超时，停止倒计时\n", userID)
+				return
+			}
+
+			// 计算剩余时间
+			remaining := expireTime.Sub(time.Now())
+			if remaining <= 0 {
+				fmt.Printf("用户 %d 验证超时\n", userID)
+				return
+			}
+
+			// 更新消息（倒计时放底部）
+			minutes := int(remaining.Minutes())
+			seconds := int(remaining.Seconds()) % 60
+			updateMsg := tgbotapi.NewEditMessageText(chatID, messageID,
+				fmt.Sprintf("欢迎 %s 加入群聊！\n请完成验证，否则将被禁言：\n\n%d + %d = ?\n\n⏱️ 剩余时间：%d分%d秒", userName, num1, num2, minutes, seconds))
+
+			// 重新添加键盘
+			var keyboard *tgbotapi.InlineKeyboardMarkup
+			verificationCacheMu.RLock()
+			if challenge, ok := verificationCache[userID]; ok {
+				keyboard = &tgbotapi.InlineKeyboardMarkup{}
+				keyboard.InlineKeyboard = make([][]tgbotapi.InlineKeyboardButton, 1)
+				keyboard.InlineKeyboard[0] = []tgbotapi.InlineKeyboardButton{
+					tgbotapi.NewInlineKeyboardButtonData("A. "+fmt.Sprintf("%d", challenge.Options[0]), "verify_"+fmt.Sprintf("%d", challenge.Options[0])),
+					tgbotapi.NewInlineKeyboardButtonData("B. "+fmt.Sprintf("%d", challenge.Options[1]), "verify_"+fmt.Sprintf("%d", challenge.Options[1])),
+					tgbotapi.NewInlineKeyboardButtonData("C. "+fmt.Sprintf("%d", challenge.Options[2]), "verify_"+fmt.Sprintf("%d", challenge.Options[2])),
+					tgbotapi.NewInlineKeyboardButtonData("D. "+fmt.Sprintf("%d", challenge.Options[3]), "verify_"+fmt.Sprintf("%d", challenge.Options[3])),
+				}
+			}
+			verificationCacheMu.RUnlock()
+			updateMsg.ReplyMarkup = keyboard
+
+			_, err := bot.Send(updateMsg)
+			if err != nil {
+				fmt.Printf("更新倒计时失败: %v\n", err)
+				return
+			}
+		}
+	}
+}
+
 // TelegramCallbackHandlerStrategyNone 处理内联按钮回调
 func TelegramCallbackHandlerStrategyNone() tgtask.CallbackHandler {
 	return func(update tgbotapi.Update, bot *tgbotapi.BotAPI) error {
@@ -716,9 +772,9 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 
 			num1, num2, answer, options := generateVerification()
 
-			// 构造带内联键盘的验证消息（添加倒计时提示）
+			// 构造带内联键盘的验证消息（倒计时放底部）
 			verificationMsg := tgbotapi.NewMessage(chatID,
-				fmt.Sprintf("欢迎 %s 加入群聊！\n⏱️ 请在5分钟内完成验证，否则将被禁言：\n\n%d + %d = ?", userName, num1, num2))
+				fmt.Sprintf("欢迎 %s 加入群聊！\n请完成验证，否则将被禁言：\n\n%d + %d = ?\n\n⏱️ 剩余时间：5分0秒", userName, num1, num2))
 
 			// 创建内联键盘 - 4个按钮一行显示
 			var keyboard tgbotapi.InlineKeyboardMarkup
@@ -736,6 +792,9 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 			} else {
 				fmt.Printf("Sent verification challenge to user %d: %d + %d = %d\n", userID, num1, num2, answer)
 
+				// 计算过期时间
+				expireTime := time.Now().Add(verificationExpire)
+
 				// 发送成功后才保存到缓存
 				verificationCacheMu.Lock()
 				verificationCache[userID] = verificationChallenge{
@@ -743,11 +802,14 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 					Num2:       num2,
 					Answer:     answer,
 					Options:    options,
-					ExpireTime: time.Now().Add(verificationExpire),
+					ExpireTime: expireTime,
 					Retries:    maxVerificationRetries,
 					MessageID:  sentMsg.MessageID,
 				}
 				verificationCacheMu.Unlock()
+
+				// 启动倒计时更新协程
+				go startCountdown(bot, chatID, userID, sentMsg.MessageID, expireTime, num1, num2, userName)
 			}
 		}
 
