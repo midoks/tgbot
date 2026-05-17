@@ -335,13 +335,19 @@ type verificationChallenge struct {
 	Answer     int
 	Options    []int // 4个选项
 	ExpireTime time.Time
+	Retries    int // 剩余重试次数
+	MessageID  int // 验证消息ID，用于后续删除
 }
 
 var (
 	verificationCache      = make(map[int64]verificationChallenge)
 	verificationCacheMu    sync.RWMutex
 	verificationExpire     = 5 * time.Minute
-	maxVerificationRetries = 3
+	maxVerificationRetries = 1 // 错误后只有一次重试机会
+	// 记录刚验证成功的用户，防止验证成功后短时间内再次触发
+	justVerifiedUsers   = make(map[int64]time.Time)
+	justVerifiedUsersMu sync.RWMutex
+	antiSpamDuration    = 30 * time.Second // 防重复触发间隔
 )
 
 func generateVerification() (int, int, int, []int) {
@@ -429,6 +435,9 @@ func TelegramCallbackHandlerStrategyNone() tgtask.CallbackHandler {
 			}
 
 			var responseMsg string
+			// 保存验证消息ID，用于后续删除
+			verificationMsgID := challenge.MessageID
+
 			if answer == challenge.Answer {
 				// 验证成功 - 解除禁言
 				clearVerification(userID)
@@ -460,18 +469,57 @@ func TelegramCallbackHandlerStrategyNone() tgtask.CallbackHandler {
 
 				responseMsg = "验证成功！欢迎加入群聊！"
 				fmt.Printf("用户 %d 验证成功\n", userID)
+
+				// 记录用户刚验证成功，防止短时间内再次触发验证
+				justVerifiedUsersMu.Lock()
+				justVerifiedUsers[userID] = time.Now()
+				justVerifiedUsersMu.Unlock()
 			} else {
-				// 验证失败 - 保持禁言状态
-				responseMsg = fmt.Sprintf("答案错误！请重新选择：\n%d + %d = ?", challenge.Num1, challenge.Num2)
-				fmt.Printf("用户 %d 验证失败，选择了 %d，正确答案是 %d\n", userID, answer, challenge.Answer)
+				// 验证失败 - 检查是否还有重试机会
+				if challenge.Retries > 0 {
+					// 还有重试机会，更新重试次数
+					verificationCacheMu.Lock()
+					challenge.Retries--
+					verificationCache[userID] = challenge
+					verificationCacheMu.Unlock()
+
+					responseMsg = fmt.Sprintf("答案错误！您还有 %d 次机会：\n%d + %d = ?", challenge.Retries, challenge.Num1, challenge.Num2)
+					fmt.Printf("用户 %d 验证失败，剩余重试次数: %d\n", userID, challenge.Retries)
+				} else {
+					// 没有重试机会了，保持禁言
+					clearVerification(userID)
+					responseMsg = "答案错误！您已用完所有验证机会，已被禁言，请联系管理员。"
+					fmt.Printf("用户 %d 验证失败，已用完重试机会\n", userID)
+				}
 			}
 
 			// 发送回复消息
 			msg := tgbotapi.NewMessage(chatID, responseMsg)
-			_, err := bot.Send(msg)
+			sentMsg, err := bot.Send(msg)
 			if err != nil {
 				fmt.Printf("发送消息失败: %v\n", err)
 			}
+
+			// 5秒后删除验证消息和响应消息
+			go func(chatID int64, verificationMsgID int, responseMsgID int) {
+				time.Sleep(5 * time.Second)
+
+				// 删除验证消息
+				deleteVerifyConfig := tgbotapi.DeleteMessageConfig{
+					ChatID:    chatID,
+					MessageID: verificationMsgID,
+				}
+				_, _ = bot.Request(deleteVerifyConfig)
+
+				// 删除响应消息
+				deleteResponseConfig := tgbotapi.DeleteMessageConfig{
+					ChatID:    chatID,
+					MessageID: responseMsgID,
+				}
+				_, _ = bot.Request(deleteResponseConfig)
+
+				fmt.Printf("已删除验证消息和响应消息\n")
+			}(chatID, verificationMsgID, sentMsg.MessageID)
 
 			// 回复回调（必须调用，否则按钮会一直显示加载状态）
 			callbackConfig := tgbotapi.NewCallback(callback.ID, "")
@@ -622,9 +670,25 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 			chatID, userName, userID, oldStatus, newStatus)
 
 		// 用户加入群聊（包括重新加入）
-		// 当状态从非 member 变为 member 时触发验证
-		if newStatus == "member" && oldStatus != "member" {
-			fmt.Printf("触发验证逻辑\n")
+		// 触发条件：
+		// 1. 新状态是 member，旧状态是 left 或 kicked（真正重新加入）
+		// 2. 或者用户从受限状态（restricted）变为非 member 状态（被禁言后重新加入但状态仍为 restricted）
+		// 注意：验证成功后状态从 restricted 变为 member 不应再次触发验证
+		isMemberJoin := newStatus == "member" && (oldStatus == "left" || oldStatus == "kicked")
+		isRestrictedRejoin := oldStatus == "restricted" && newStatus != "member" && newStatus != "left" && newStatus != "kicked"
+
+		// 检查用户是否刚验证成功，防止验证成功后短时间内再次触发
+		justVerifiedUsersMu.RLock()
+		verifiedTime, justVerified := justVerifiedUsers[userID]
+		justVerifiedUsersMu.RUnlock()
+
+		if justVerified && time.Now().Sub(verifiedTime) < antiSpamDuration {
+			fmt.Printf("用户 %d 刚验证成功，跳过验证\n", userID)
+			return nil
+		}
+
+		if isMemberJoin || isRestrictedRejoin {
+			fmt.Printf("触发验证逻辑 (isMemberJoin: %v, isRestrictedRejoin: %v)\n", isMemberJoin, isRestrictedRejoin)
 			// 先禁言用户，只允许阅读消息
 			permissions := tgbotapi.ChatPermissions{
 				CanSendMessages:       false,
@@ -652,19 +716,9 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 
 			num1, num2, answer, options := generateVerification()
 
-			verificationCacheMu.Lock()
-			verificationCache[userID] = verificationChallenge{
-				Num1:       num1,
-				Num2:       num2,
-				Answer:     answer,
-				Options:    options,
-				ExpireTime: time.Now().Add(verificationExpire),
-			}
-			verificationCacheMu.Unlock()
-
-			// 构造带内联键盘的验证消息
+			// 构造带内联键盘的验证消息（添加倒计时提示）
 			verificationMsg := tgbotapi.NewMessage(chatID,
-				fmt.Sprintf("欢迎 %s 加入群聊！\n请在5分钟内完成验证，否则将被禁言：\n\n%d + %d = ?", userName, num1, num2))
+				fmt.Sprintf("欢迎 %s 加入群聊！\n⏱️ 请在5分钟内完成验证，否则将被禁言：\n\n%d + %d = ?", userName, num1, num2))
 
 			// 创建内联键盘 - 4个按钮一行显示
 			var keyboard tgbotapi.InlineKeyboardMarkup
@@ -676,11 +730,24 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 				tgbotapi.NewInlineKeyboardButtonData("D. "+fmt.Sprintf("%d", options[3]), "verify_"+fmt.Sprintf("%d", options[3])),
 			}
 			verificationMsg.ReplyMarkup = keyboard
-			_, err = bot.Send(verificationMsg)
+			sentMsg, err := bot.Send(verificationMsg)
 			if err != nil {
 				fmt.Printf("Failed to send verification message to user %d: %v\n", userID, err)
 			} else {
 				fmt.Printf("Sent verification challenge to user %d: %d + %d = %d\n", userID, num1, num2, answer)
+
+				// 发送成功后才保存到缓存
+				verificationCacheMu.Lock()
+				verificationCache[userID] = verificationChallenge{
+					Num1:       num1,
+					Num2:       num2,
+					Answer:     answer,
+					Options:    options,
+					ExpireTime: time.Now().Add(verificationExpire),
+					Retries:    maxVerificationRetries,
+					MessageID:  sentMsg.MessageID,
+				}
+				verificationCacheMu.Unlock()
 			}
 		}
 
