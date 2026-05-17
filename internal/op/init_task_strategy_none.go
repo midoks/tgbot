@@ -421,17 +421,47 @@ func TelegramCallbackHandlerStrategyNone() tgtask.CallbackHandler {
 
 			if time.Now().After(challenge.ExpireTime) {
 				clearVerification(userID)
+				// 验证超时 - 用户保持禁言状态
+				msg := tgbotapi.NewMessage(chatID, "验证超时！您已被禁言，请联系管理员。")
+				_, _ = bot.Send(msg)
+				fmt.Printf("User %d verification timeout (remains restricted)\n", userID)
 				return nil
 			}
 
 			var responseMsg string
 			if answer == challenge.Answer {
-				// 验证成功
+				// 验证成功 - 解除禁言
 				clearVerification(userID)
+
+				// 解除禁言，恢复所有权限
+				unrestrictPermissions := tgbotapi.ChatPermissions{
+					CanSendMessages:       true,
+					CanSendMediaMessages:  true,
+					CanSendPolls:          true,
+					CanSendOtherMessages:  true,
+					CanAddWebPagePreviews: true,
+					CanChangeInfo:         false,
+					CanInviteUsers:        true,
+					CanPinMessages:        false,
+				}
+				unrestrictConfig := tgbotapi.RestrictChatMemberConfig{
+					ChatMemberConfig: tgbotapi.ChatMemberConfig{
+						ChatID: chatID,
+						UserID: userID,
+					},
+					Permissions: &unrestrictPermissions,
+				}
+				_, err := bot.Request(unrestrictConfig)
+				if err != nil {
+					fmt.Printf("Failed to unrestrict user %d: %v\n", userID, err)
+				} else {
+					fmt.Printf("User %d unrestricted (verified)\n", userID)
+				}
+
 				responseMsg = "验证成功！欢迎加入群聊！"
 				fmt.Printf("用户 %d 验证成功\n", userID)
 			} else {
-				// 验证失败
+				// 验证失败 - 保持禁言状态
 				responseMsg = fmt.Sprintf("答案错误！请重新选择：\n%d + %d = ?", challenge.Num1, challenge.Num2)
 				fmt.Printf("用户 %d 验证失败，选择了 %d，正确答案是 %d\n", userID, answer, challenge.Answer)
 			}
@@ -551,8 +581,13 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 		var oldStatus string
 		var newStatus string
 
+		fmt.Printf("=== ChatMemberHandler 被调用 ===\n")
+		fmt.Printf("update.ChatMember != nil: %v\n", update.ChatMember != nil)
+		fmt.Printf("update.MyChatMember != nil: %v\n", update.MyChatMember != nil)
+
 		if update.ChatMember != nil {
 			// 新成员加入群聊事件
+			fmt.Printf("处理 update.ChatMember 事件\n")
 			chatID = update.ChatMember.Chat.ID
 			userID = update.ChatMember.NewChatMember.User.ID
 			if update.ChatMember.NewChatMember.User.UserName != "" {
@@ -566,6 +601,7 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 			newStatus = update.ChatMember.NewChatMember.Status
 		} else if update.MyChatMember != nil {
 			// 机器人自身状态变化事件
+			fmt.Printf("处理 update.MyChatMember 事件\n")
 			chatID = update.MyChatMember.Chat.ID
 			userID = update.MyChatMember.From.ID
 			if update.MyChatMember.From.UserName != "" {
@@ -578,6 +614,7 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 			oldStatus = update.MyChatMember.OldChatMember.Status
 			newStatus = update.MyChatMember.NewChatMember.Status
 		} else {
+			fmt.Printf("ChatMemberHandler: 没有有效的 ChatMember 更新\n")
 			return nil
 		}
 
@@ -587,6 +624,32 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 		// 用户加入群聊（包括重新加入）
 		// 当状态从非 member 变为 member 时触发验证
 		if newStatus == "member" && oldStatus != "member" {
+			fmt.Printf("触发验证逻辑\n")
+			// 先禁言用户，只允许阅读消息
+			permissions := tgbotapi.ChatPermissions{
+				CanSendMessages:       false,
+				CanSendMediaMessages:  false,
+				CanSendPolls:          false,
+				CanSendOtherMessages:  false,
+				CanAddWebPagePreviews: false,
+				CanChangeInfo:         false,
+				CanInviteUsers:        false,
+				CanPinMessages:        false,
+			}
+			restrictConfig := tgbotapi.RestrictChatMemberConfig{
+				ChatMemberConfig: tgbotapi.ChatMemberConfig{
+					ChatID: chatID,
+					UserID: userID,
+				},
+				Permissions: &permissions,
+			}
+			_, err := bot.Request(restrictConfig)
+			if err != nil {
+				fmt.Printf("Failed to restrict user %d: %v\n", userID, err)
+			} else {
+				fmt.Printf("User %d restricted (only can read messages)\n", userID)
+			}
+
 			num1, num2, answer, options := generateVerification()
 
 			verificationCacheMu.Lock()
@@ -601,21 +664,19 @@ func TelegramChatMemberHandlerStrategyNone(relateMonitorGroupID int64) tgtask.Ch
 
 			// 构造带内联键盘的验证消息
 			verificationMsg := tgbotapi.NewMessage(chatID,
-				fmt.Sprintf("欢迎 %s 加入群聊！\n请在5分钟内完成验证：\n\n%d + %d = ?", userName, num1, num2))
+				fmt.Sprintf("欢迎 %s 加入群聊！\n请在5分钟内完成验证，否则将被禁言：\n\n%d + %d = ?", userName, num1, num2))
 
-			// 创建内联键盘
+			// 创建内联键盘 - 4个按钮一行显示
 			var keyboard tgbotapi.InlineKeyboardMarkup
-			keyboard.InlineKeyboard = make([][]tgbotapi.InlineKeyboardButton, 2)
+			keyboard.InlineKeyboard = make([][]tgbotapi.InlineKeyboardButton, 1)
 			keyboard.InlineKeyboard[0] = []tgbotapi.InlineKeyboardButton{
 				tgbotapi.NewInlineKeyboardButtonData("A. "+fmt.Sprintf("%d", options[0]), "verify_"+fmt.Sprintf("%d", options[0])),
 				tgbotapi.NewInlineKeyboardButtonData("B. "+fmt.Sprintf("%d", options[1]), "verify_"+fmt.Sprintf("%d", options[1])),
-			}
-			keyboard.InlineKeyboard[1] = []tgbotapi.InlineKeyboardButton{
 				tgbotapi.NewInlineKeyboardButtonData("C. "+fmt.Sprintf("%d", options[2]), "verify_"+fmt.Sprintf("%d", options[2])),
 				tgbotapi.NewInlineKeyboardButtonData("D. "+fmt.Sprintf("%d", options[3]), "verify_"+fmt.Sprintf("%d", options[3])),
 			}
 			verificationMsg.ReplyMarkup = keyboard
-			_, err := bot.Send(verificationMsg)
+			_, err = bot.Send(verificationMsg)
 			if err != nil {
 				fmt.Printf("Failed to send verification message to user %d: %v\n", userID, err)
 			} else {
