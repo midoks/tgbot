@@ -312,9 +312,13 @@ func ReloadTelegramTask() {
 			}
 
 			var handler tgtask.MessageHandler
+			var chatMemberHandler tgtask.ChatMemberHandler
+			var callbackHandler tgtask.CallbackHandler
 			handler = TelegramMessageHandlerStrategyNone(0)
+			chatMemberHandler = TelegramChatMemberHandlerStrategyNone(0)
+			callbackHandler = TelegramCallbackHandlerStrategyNone()
 
-			if err := manager.AddBot(botID, data.Token, proxy, 0, handler); err != nil {
+			if err := manager.AddBot(botID, data.Token, proxy, 0, handler, chatMemberHandler, callbackHandler); err != nil {
 				fmt.Printf("failed to add bot: %v\n", err)
 				continue
 			}
@@ -356,9 +360,13 @@ func InitTelegramTask() {
 		}
 
 		var handler tgtask.MessageHandler
+		var chatMemberHandler tgtask.ChatMemberHandler
+		var callbackHandler tgtask.CallbackHandler
 		handler = TelegramMessageHandlerStrategyNone(0)
+		chatMemberHandler = TelegramChatMemberHandlerStrategyNone(0)
+		callbackHandler = TelegramCallbackHandlerStrategyNone()
 
-		if err := manager.AddBot(botID, data.Token, proxy, 0, handler); err != nil {
+		if err := manager.AddBot(botID, data.Token, proxy, 0, handler, chatMemberHandler, callbackHandler); err != nil {
 			fmt.Printf("failed to add bot: %v\n", err)
 			continue
 		}

@@ -17,14 +17,21 @@ import (
 
 type MessageHandler func(update tgbotapi.Update, bot *tgbotapi.BotAPI) error
 
+type ChatMemberHandler func(update tgbotapi.Update, bot *tgbotapi.BotAPI) error
+
+// CallbackHandler 处理内联按钮回调
+type CallbackHandler func(update tgbotapi.Update, bot *tgbotapi.BotAPI) error
+
 type Bot struct {
-	Token          string
-	Proxy          string
-	ChatID         int64
-	BotAPI         *tgbotapi.BotAPI
-	StopChan       chan struct{}
-	running        bool
-	MessageHandler MessageHandler
+	Token             string
+	Proxy             string
+	ChatID            int64
+	BotAPI            *tgbotapi.BotAPI
+	StopChan          chan struct{}
+	running           bool
+	MessageHandler    MessageHandler
+	ChatMemberHandler ChatMemberHandler
+	CallbackHandler   CallbackHandler
 }
 
 type Manager struct {
@@ -95,7 +102,7 @@ func getBotByProxy(token, proxyURL string) (bot *tgbotapi.BotAPI, err error) {
 	return bot, err
 }
 
-func (m *Manager) AddBot(id int64, token, proxyURL string, chatID int64, handler MessageHandler) error {
+func (m *Manager) AddBot(id int64, token, proxyURL string, chatID int64, handler MessageHandler, chatMemberHandler ChatMemberHandler, callbackHandler CallbackHandler) error {
 	m.mutex.Lock()
 
 	// 检查是否存在相同 token 的 bot
@@ -161,12 +168,14 @@ func (m *Manager) AddBot(id int64, token, proxyURL string, chatID int64, handler
 	}
 
 	newBot := &Bot{
-		Token:          token,
-		Proxy:          proxyURL,
-		ChatID:         chatID,
-		BotAPI:         bot,
-		StopChan:       make(chan struct{}),
-		MessageHandler: handler,
+		Token:             token,
+		Proxy:             proxyURL,
+		ChatID:            chatID,
+		BotAPI:            bot,
+		StopChan:          make(chan struct{}),
+		MessageHandler:    handler,
+		ChatMemberHandler: chatMemberHandler,
+		CallbackHandler:   callbackHandler,
 	}
 
 	m.bots[id] = newBot
@@ -222,6 +231,8 @@ func (m *Manager) runBot(bot *Bot) {
 
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 30
+	// 配置接收的更新类型，确保能收到群成员变更通知和回调查询
+	updateConfig.AllowedUpdates = []string{"message", "chat_member", "my_chat_member", "callback_query"}
 
 	updates := bot.BotAPI.GetUpdatesChan(updateConfig)
 
@@ -231,6 +242,34 @@ func (m *Manager) runBot(bot *Bot) {
 			bot.BotAPI.StopReceivingUpdates()
 			return
 		case update := <-updates:
+			if update.MyChatMember != nil {
+				if bot.ChatMemberHandler != nil {
+					if err := bot.ChatMemberHandler(update, bot.BotAPI); err != nil {
+						log.Errorf("处理群成员更新失败: %v", err)
+					}
+				}
+				continue
+			}
+
+			if update.ChatMember != nil {
+				if bot.ChatMemberHandler != nil {
+					if err := bot.ChatMemberHandler(update, bot.BotAPI); err != nil {
+						log.Errorf("处理群成员更新失败: %v", err)
+					}
+				}
+				continue
+			}
+
+			// 处理内联按钮回调
+			if update.CallbackQuery != nil {
+				if bot.CallbackHandler != nil {
+					if err := bot.CallbackHandler(update, bot.BotAPI); err != nil {
+						log.Errorf("处理回调失败: %v", err)
+					}
+				}
+				continue
+			}
+
 			if update.Message == nil {
 				continue
 			}
